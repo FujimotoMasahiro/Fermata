@@ -10,7 +10,100 @@
 @import ServiceManagement;
 @import UniformTypeIdentifiers;
 
-@interface PreferencesController ()
+
+#pragma mark - Info Popover Button
+
+@class FermataInfoButton;
+
+@protocol FermataInfoButtonDelegate <NSObject>
+- (void) infoButtonDidHoverEnter:(FermataInfoButton *)button;
+- (void) infoButtonDidHoverExit:(FermataInfoButton *)button;
+- (void) infoButtonDidClick:(FermataInfoButton *)button;
+@end
+
+@interface FermataInfoButton : NSButton
+@property (nonatomic, copy) NSString *helpTitleKey;
+@property (nonatomic, copy) NSString *helpBodyKey;
+@property (nonatomic, weak) id<FermataInfoButtonDelegate> infoDelegate;
+@end
+
+@implementation FermataInfoButton {
+    NSTrackingArea *_trackingArea;
+}
+
+- (instancetype) initWithTitleKey:(NSString *)titleKey bodyKey:(NSString *)bodyKey delegate:(id<FermataInfoButtonDelegate>)delegate
+{
+    if ((self = [super initWithFrame:NSMakeRect(0, 0, 18, 18)])) {
+        _helpTitleKey = [titleKey copy];
+        _helpBodyKey  = [bodyKey copy];
+        _infoDelegate = delegate;
+
+        self.translatesAutoresizingMaskIntoConstraints = NO;
+        self.bordered = NO;
+        self.title = @"";
+        self.bezelStyle = NSBezelStyleInline;
+        [self setButtonType:NSButtonTypeMomentaryChange];
+
+        NSImage *symbol = [NSImage imageWithSystemSymbolName:@"info.circle" accessibilityDescription:@"Help"];
+        if (symbol) {
+            NSImageSymbolConfiguration *cfg = [NSImageSymbolConfiguration configurationWithPointSize:13.0 weight:NSFontWeightRegular];
+            self.image = [symbol imageWithSymbolConfiguration:cfg] ?: symbol;
+            self.imageScaling = NSImageScaleProportionallyDown;
+        } else {
+            self.title = @"?";
+        }
+        self.contentTintColor = [NSColor secondaryLabelColor];
+
+        self.target = self;
+        self.action = @selector(_handleClick:);
+
+        [NSLayoutConstraint activateConstraints:@[
+            [self.widthAnchor constraintEqualToConstant:18.0],
+            [self.heightAnchor constraintEqualToConstant:18.0]
+        ]];
+    }
+    return self;
+}
+
+- (void) updateTrackingAreas
+{
+    [super updateTrackingAreas];
+
+    if (_trackingArea) {
+        [self removeTrackingArea:_trackingArea];
+        _trackingArea = nil;
+    }
+
+    NSTrackingAreaOptions options = NSTrackingMouseEnteredAndExited |
+                                    NSTrackingActiveAlways |
+                                    NSTrackingInVisibleRect;
+    _trackingArea = [[NSTrackingArea alloc] initWithRect:self.bounds options:options owner:self userInfo:nil];
+    [self addTrackingArea:_trackingArea];
+}
+
+- (void) mouseEntered:(NSEvent *)event
+{
+    self.contentTintColor = [NSColor controlAccentColor];
+    [self.infoDelegate infoButtonDidHoverEnter:self];
+}
+
+- (void) mouseExited:(NSEvent *)event
+{
+    self.contentTintColor = [NSColor secondaryLabelColor];
+    [self.infoDelegate infoButtonDidHoverExit:self];
+}
+
+- (void) _handleClick:(id)sender
+{
+    [self.infoDelegate infoButtonDidClick:self];
+}
+
+@end
+
+
+#pragma mark - PreferencesController
+
+@interface PreferencesController () <FermataInfoButtonDelegate, NSPopoverDelegate>
 @property (nonatomic) IBOutlet NSTableView *tableView;
 
 @property (nonatomic, weak) IBOutlet NSTextField *autoHeaderLabel;
@@ -37,7 +130,12 @@
 @end
 
 
-@implementation PreferencesController
+@implementation PreferencesController {
+    NSPopover *_helpPopover;
+    __weak FermataInfoButton *_activeInfoButton;
+    BOOL _popoverPinnedByClick;
+    NSUInteger _hoverSequence;
+}
 
 - (NSString *) windowNibName
 {
@@ -55,7 +153,10 @@
 {
     [super windowDidLoad];
 
+    self.window.allowsToolTipsWhenApplicationIsInactive = YES;
     self.tableView.delegate = self;
+
+    [self _installInfoButtons];
 
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(_handleLanguageDidChange:)
@@ -67,10 +168,184 @@
 }
 
 
+#pragma mark - Info Popover Setup & Behavior
+
+- (void) _installInfoButtons
+{
+    NSView *contentView = self.window.contentView;
+    if (!contentView) return;
+
+    // 1. Auto-list header (aligned to right edge of content)
+    FermataInfoButton *autoBtn = [[FermataInfoButton alloc] initWithTitleKey:@"help.title.auto_list"
+                                                                     bodyKey:@"tooltip.auto_list"
+                                                                    delegate:self];
+    [contentView addSubview:autoBtn];
+    [NSLayoutConstraint activateConstraints:@[
+        [autoBtn.trailingAnchor constraintEqualToAnchor:contentView.trailingAnchor constant:-20.0],
+        [autoBtn.centerYAnchor constraintEqualToAnchor:self.autoHeaderLabel.centerYAnchor]
+    ]];
+
+    // Helper to align info buttons along the right side of the popup column
+    void (^addAlignedToPopUpColumn)(NSView *, NSString *, NSString *) = ^(NSView *anchorView, NSString *titleKey, NSString *bodyKey) {
+        if (!anchorView || !self.updateFrequencyPopUp) return;
+        FermataInfoButton *btn = [[FermataInfoButton alloc] initWithTitleKey:titleKey bodyKey:bodyKey delegate:self];
+        [contentView addSubview:btn];
+        [NSLayoutConstraint activateConstraints:@[
+            [btn.leadingAnchor constraintEqualToAnchor:self.updateFrequencyPopUp.trailingAnchor constant:8.0],
+            [btn.centerYAnchor constraintEqualToAnchor:anchorView.centerYAnchor]
+        ]];
+    };
+
+    addAlignedToPopUpColumn(self.updateFrequencyPopUp, @"help.title.update_freq",     @"tooltip.update_freq");
+    addAlignedToPopUpColumn(self.reenableDelayPopUp,   @"help.title.reenable_delay",  @"tooltip.reenable_delay");
+    addAlignedToPopUpColumn(self.manualDurationPopUp,  @"help.title.manual_duration", @"tooltip.manual_duration");
+    addAlignedToPopUpColumn(self.diskSleepCheckbox,    @"help.title.disk_sleep",      @"tooltip.disk_sleep");
+    addAlignedToPopUpColumn(self.displaySleepCheckbox, @"help.title.display_sleep",   @"tooltip.display_sleep");
+    addAlignedToPopUpColumn(self.languagePopUp,        @"help.title.language",        @"tooltip.language");
+
+    // 8. Launch at login checkbox (placed right next to the centered checkbox)
+    if (self.launchAtLoginCheckbox) {
+        FermataInfoButton *loginBtn = [[FermataInfoButton alloc] initWithTitleKey:@"help.title.launch_at_login"
+                                                                          bodyKey:@"tooltip.launch_at_login"
+                                                                         delegate:self];
+        [contentView addSubview:loginBtn];
+        [NSLayoutConstraint activateConstraints:@[
+            [loginBtn.leadingAnchor constraintEqualToAnchor:self.launchAtLoginCheckbox.trailingAnchor constant:6.0],
+            [loginBtn.centerYAnchor constraintEqualToAnchor:self.launchAtLoginCheckbox.centerYAnchor]
+        ]];
+    }
+}
+
+
+- (void) _showPopoverForInfoButton:(FermataInfoButton *)button pinned:(BOOL)pinned
+{
+    if (!button || !button.window) return;
+
+    if (_helpPopover.isShown && _activeInfoButton == button) {
+        if (pinned) {
+            _popoverPinnedByClick = YES;
+            _helpPopover.behavior = NSPopoverBehaviorTransient;
+        }
+        return;
+    }
+
+    if (_helpPopover.isShown) {
+        [_helpPopover performClose:nil];
+    }
+
+    NSString *title = FermataLocalizedString(button.helpTitleKey);
+    NSString *body  = FermataLocalizedString(button.helpBodyKey);
+
+    NSViewController *vc = [[NSViewController alloc] init];
+    NSView *container = [[NSView alloc] initWithFrame:NSMakeRect(0, 0, 290, 80)];
+
+    NSTextField *titleLabel = [NSTextField wrappingLabelWithString:title];
+    titleLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    titleLabel.font = [NSFont boldSystemFontOfSize:12.5];
+    titleLabel.textColor = [NSColor labelColor];
+
+    NSTextField *bodyLabel = [NSTextField wrappingLabelWithString:body];
+    bodyLabel.translatesAutoresizingMaskIntoConstraints = NO;
+    bodyLabel.font = [NSFont systemFontOfSize:12.0];
+    bodyLabel.textColor = [NSColor secondaryLabelColor];
+    bodyLabel.preferredMaxLayoutWidth = 264.0;
+
+    [container addSubview:titleLabel];
+    [container addSubview:bodyLabel];
+
+    [NSLayoutConstraint activateConstraints:@[
+        [titleLabel.topAnchor constraintEqualToAnchor:container.topAnchor constant:12.0],
+        [titleLabel.leadingAnchor constraintEqualToAnchor:container.leadingAnchor constant:13.0],
+        [titleLabel.trailingAnchor constraintEqualToAnchor:container.trailingAnchor constant:-13.0],
+
+        [bodyLabel.topAnchor constraintEqualToAnchor:titleLabel.bottomAnchor constant:6.0],
+        [bodyLabel.leadingAnchor constraintEqualToAnchor:container.leadingAnchor constant:13.0],
+        [bodyLabel.trailingAnchor constraintEqualToAnchor:container.trailingAnchor constant:-13.0],
+        [bodyLabel.bottomAnchor constraintEqualToAnchor:container.bottomAnchor constant:-12.0],
+        [bodyLabel.widthAnchor constraintEqualToConstant:264.0]
+    ]];
+
+    [container layoutSubtreeIfNeeded];
+    NSSize fittingSize = container.fittingSize;
+    container.frame = NSMakeRect(0, 0, fittingSize.width, fittingSize.height);
+    vc.view = container;
+
+    NSPopover *popover = [[NSPopover alloc] init];
+    popover.contentViewController = vc;
+    popover.contentSize = fittingSize;
+    popover.animates = YES;
+    popover.delegate = self;
+    popover.behavior = pinned ? NSPopoverBehaviorTransient : NSPopoverBehaviorApplicationDefined;
+
+    _helpPopover = popover;
+    _activeInfoButton = button;
+    _popoverPinnedByClick = pinned;
+
+    [popover showRelativeToRect:button.bounds ofView:button preferredEdge:NSRectEdgeMaxX];
+}
+
+
+- (void) _closePopoverIfNotPinned
+{
+    if (_helpPopover.isShown && !_popoverPinnedByClick) {
+        [_helpPopover performClose:nil];
+    }
+}
+
+
+- (void) infoButtonDidHoverEnter:(FermataInfoButton *)button
+{
+    _hoverSequence++;
+    NSUInteger seq = _hoverSequence;
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.10 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        if (self->_hoverSequence != seq) return;
+        [self _showPopoverForInfoButton:button pinned:NO];
+    });
+}
+
+
+- (void) infoButtonDidHoverExit:(FermataInfoButton *)button
+{
+    _hoverSequence++;
+    NSUInteger seq = _hoverSequence;
+
+    if (_popoverPinnedByClick) return;
+
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.18 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        if (self->_hoverSequence != seq) return;
+        [self _closePopoverIfNotPinned];
+    });
+}
+
+
+- (void) infoButtonDidClick:(FermataInfoButton *)button
+{
+    _hoverSequence++;
+    if (_helpPopover.isShown && _activeInfoButton == button && _popoverPinnedByClick) {
+        [_helpPopover performClose:nil];
+        return;
+    }
+    [self _showPopoverForInfoButton:button pinned:YES];
+}
+
+
+- (void) popoverDidClose:(NSNotification *)notification
+{
+    if (notification.object == _helpPopover) {
+        _activeInfoButton = nil;
+        _popoverPinnedByClick = NO;
+    }
+}
+
+
 #pragma mark - Localization
 
 - (void) _handleLanguageDidChange:(NSNotification *)note
 {
+    if (_helpPopover.isShown) {
+        [_helpPopover performClose:nil];
+    }
     [self _syncLanguageSelection];
     [self _applyLocalization];
 }
