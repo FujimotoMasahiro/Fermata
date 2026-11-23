@@ -6,6 +6,7 @@
 #import "RestlessEngine.h"
 #import "PreferencesController.h"
 #import "Entry.h"
+#import "Localization.h"
 
 
 @import ServiceManagement;
@@ -27,6 +28,9 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
 
 @property (weak) IBOutlet NSMenu *statusItemMenu;
 @property (weak) IBOutlet NSMenuItem *lidCloseMenuItem;
+@property (weak) IBOutlet NSMenuItem *settingsMenuItem;
+@property (weak) IBOutlet NSMenuItem *aboutMenuItem;
+@property (weak) IBOutlet NSMenuItem *quitMenuItem;
 
 @end
 
@@ -62,7 +66,9 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
         ManualDurationKey:  @10,
 
         AlsoPreventDiskSleepKey:    @NO,
-        AlsoPreventDisplaySleepKey: @NO
+        AlsoPreventDisplaySleepKey: @NO,
+
+        FermataLanguagePreferenceKey: FermataLanguageValueSystem
     };
 
     [[NSUserDefaults standardUserDefaults] registerDefaults:defaults];
@@ -82,6 +88,7 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
     }
     [_statusItem setMenu:[self statusItemMenu]];
 
+    [self _applyLocalization];
     [self _updateTimer];
 
     [self _loadState];
@@ -91,6 +98,7 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
 
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_handleUserDefaultsDidChangeNotification:) name:NSUserDefaultsDidChangeNotification object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_handleEntryDidUpdateNotification:)        name:EntryDidUpdateNotification          object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_handleLanguageDidChangeNotification:)     name:FermataLanguageDidChangeNotification object:nil];
 
     [[NSDistributedNotificationCenter defaultCenter] addObserver: self
                                                         selector: @selector(_handleFermataUpdateNotification:)
@@ -122,6 +130,20 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
 }
 
 
+- (void) _applyLocalization
+{
+    if ([[NSUserDefaults standardUserDefaults] integerForKey:ManualDurationKey] > 0) {
+        self.lidCloseMenuItem.title = FermataLocalizedString(@"menu.postpone");
+    } else {
+        self.lidCloseMenuItem.title = FermataLocalizedString(@"menu.prevent");
+    }
+
+    self.settingsMenuItem.title = FermataLocalizedString(@"menu.settings");
+    self.aboutMenuItem.title    = FermataLocalizedString(@"menu.about");
+    self.quitMenuItem.title     = FermataLocalizedString(@"menu.quit");
+}
+
+
 - (BOOL) validateMenuItem:(NSMenuItem *)menuItem
 {
     SEL action = [menuItem action];
@@ -130,9 +152,9 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
         [menuItem setState:(_manualPreventionActive ? NSControlStateValueOn : NSControlStateValueOff)];
 
         if ([[NSUserDefaults standardUserDefaults] integerForKey:ManualDurationKey] > 0) {
-            [menuItem setTitle:@"Postpone Lid Close Sleep"];
+            [menuItem setTitle:FermataLocalizedString(@"menu.postpone")];
         } else {
-            [menuItem setTitle:@"Prevent Lid Close Sleep"];
+            [menuItem setTitle:FermataLocalizedString(@"menu.prevent")];
         }
     }
 
@@ -229,10 +251,8 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
 
     if (launchAtLogin) {
         if (!SMLoginItemSetEnabled(bundleID, YES)) {
-            NSString *errorMessage = NSLocalizedString(@"Couldn't add Fermata to Login Items list.", nil);
-
             NSAlert *alert = [[NSAlert alloc] init];
-            [alert setInformativeText:errorMessage];
+            [alert setInformativeText:FermataLocalizedString(@"alert.login_item.failed")];
             [alert runModal];
 
             [[NSUserDefaults standardUserDefaults] setBool:NO forKey:LaunchAtLoginPreferenceKey];
@@ -255,6 +275,12 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
 {
     [self _updateEngineManually:NO];
     [self _saveState];
+}
+
+
+- (void) _handleLanguageDidChangeNotification:(NSNotification *)note
+{
+    [self _applyLocalization];
 }
 
 
@@ -459,8 +485,8 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
         [_engine checkHelper];
         if (!_engine.isHelperAvailable) {
             NSAlert *alert = [[NSAlert alloc] init];
-            alert.messageText = @"Privileged Helper Not Installed";
-            alert.informativeText = @"Fermata needs its privileged helper to control lid-close sleep.\n\nIf you are using an ad-hoc / unsigned build, run Scripts/install-helper.sh in Terminal once, then try again.";
+            alert.messageText = FermataLocalizedString(@"alert.helper_missing.title");
+            alert.informativeText = FermataLocalizedString(@"alert.helper_missing.body");
             [alert runModal];
             return;
         }

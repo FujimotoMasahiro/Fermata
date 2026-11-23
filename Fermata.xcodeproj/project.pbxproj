@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		66A000012026112300000001 /* Localization.m in Sources */ = {isa = PBXBuildFile; fileRef = 66A000032026112300000003 /* Localization.m */; };
 		550C637C1FDE334E007841BC /* Preferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 550C637B1FDE334E007841BC /* Preferences.xib */; };
 		550C63941FDE353A007841BC /* Launch Fermata.app in Resources */ = {isa = PBXBuildFile; fileRef = 550C63811FDE349D007841BC /* Launch Fermata.app */; };
 		550C63961FDE3563007841BC /* Launch Fermata.app in Copy LoginItems */ = {isa = PBXBuildFile; fileRef = 550C63811FDE349D007841BC /* Launch Fermata.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -75,6 +76,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		66A000022026112300000002 /* Localization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Localization.h; path = Source/Localization.h; sourceTree = "<group>"; };
+		66A000032026112300000003 /* Localization.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Localization.m; path = Source/Localization.m; sourceTree = "<group>"; };
 		550C637B1FDE334E007841BC /* Preferences.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Preferences.xib; path = Resources/Preferences.xib; sourceTree = "<group>"; };
 		550C63811FDE349D007841BC /* Launch Fermata.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Launch Fermata.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		550C639C1FDE365D007841BC /* Launcher_main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Launcher_main.m; path = Source/Launcher_main.m; sourceTree = "<group>"; };
@@ -194,6 +197,8 @@
 				550C639E1FDE366A007841BC /* Entry.h */,
 				550C639F1FDE366A007841BC /* Entry.m */,
 				550C63A11FDE366A007841BC /* RestlessEngine.h */,
+				66A000022026112300000002 /* Localization.h */,
+				66A000032026112300000003 /* Localization.m */,
 				550C63A01FDE366A007841BC /* RestlessEngine.m */,
 				554170021FDE0EE000D7529A /* main.m */,
 			);
@@ -349,6 +354,7 @@
 				554170061FDE0EE000D7529A /* AppDelegate.m in Sources */,
 				550C63AB1FDE4D8A007841BC /* PreferencesController.m in Sources */,
 				550C63A31FDE366A007841BC /* RestlessEngine.m in Sources */,
+				66A000012026112300000001 /* Localization.m in Sources */,
 				554170051FDE0EE000D7529A /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

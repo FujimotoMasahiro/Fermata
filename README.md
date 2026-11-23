@@ -9,6 +9,7 @@ Fermata is a small macOS utility that prevents Lid Close Sleep when specific app
 ## このフォークでの主な変更点 / What's Changed
 
 - **Apple Silicon ネイティブ対応（Universal Binary）**: `arm64` + `x86_64` 両対応（macOS 12.0 以降）
+- **多言語設定（日本語 / English / システム設定に従う）**: 設定画面の「Language / 言語」からアプリ再起動なしで即座に日本語・英語を切替可能
 - **「Quit Fermata」で固まるバグを修正**:
   - `allowLidCloseSleepWithCallback:` でヘルパー未応答・バージョン不一致時にコールバックが呼ばれず `NSTerminateLater` のまま永久にフリーズしていた問題を修正
   - XPC 通信のエラーハンドリング・タイムアウト（最大 2.5〜3 秒）・メインスレッド保証・接続破棄を実装

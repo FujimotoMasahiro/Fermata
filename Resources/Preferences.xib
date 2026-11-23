@@ -8,19 +8,34 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="PreferencesController">
             <connections>
+                <outlet property="addButton" destination="k1b-Yi-WOy" id="out-add-001"/>
+                <outlet property="alsoPreventLabel" destination="cw6-8t-rLA" id="out-als-001"/>
+                <outlet property="autoHeaderLabel" destination="gab-eF-yyZ" id="out-aut-001"/>
+                <outlet property="diskSleepCheckbox" destination="YmP-dg-B0T" id="out-dsk-001"/>
+                <outlet property="displaySleepCheckbox" destination="VvZ-3j-gr7" id="out-dsp-001"/>
+                <outlet property="languageLabel" destination="lbl-lang-01" id="out-lng-001"/>
+                <outlet property="languagePopUp" destination="pop-lang-01" id="out-lng-002"/>
+                <outlet property="launchAtLoginCheckbox" destination="1zM-SG-VSQ" id="out-lgn-001"/>
+                <outlet property="manualDurationLabel" destination="03V-hA-K1R" id="out-mnd-001"/>
+                <outlet property="manualDurationPopUp" destination="cjI-Z3-go8" id="out-mnd-002"/>
+                <outlet property="reenableDelayLabel" destination="3Yn-0Y-bJh" id="out-ren-001"/>
+                <outlet property="reenableDelayPopUp" destination="ELG-al-0rG" id="out-ren-002"/>
+                <outlet property="removeButton" destination="TvP-9y-NaV" id="out-rem-001"/>
                 <outlet property="tableView" destination="Nt2-aL-9ED" id="EcX-YJ-ozq"/>
+                <outlet property="updateFrequencyLabel" destination="2z1-iy-Vch" id="out-upd-001"/>
+                <outlet property="updateFrequencyPopUp" destination="CBj-a6-F0H" id="out-upd-002"/>
                 <outlet property="window" destination="QvC-M9-y7g" id="VyG-IP-W8n"/>
             </connections>
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <window title="Preferences" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" frameAutosaveName="Preferences" animationBehavior="default" id="QvC-M9-y7g">
+        <window title="Settings" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" frameAutosaveName="PreferencesV2" animationBehavior="default" id="QvC-M9-y7g">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
             <windowPositionMask key="initialPositionMask" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="196" y="796" width="440" height="412"/>
+            <rect key="contentRect" x="196" y="796" width="440" height="468"/>
             <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1417"/>
             <view key="contentView" wantsLayer="YES" id="EiT-Mj-1SZ">
-                <rect key="frame" x="0.0" y="0.0" width="440" height="412"/>
+                <rect key="frame" x="0.0" y="0.0" width="440" height="468"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gab-eF-yyZ">
@@ -175,7 +190,7 @@
                     <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="CBj-a6-F0H">
                         <rect key="frame" x="224" y="212" width="125" height="25"/>
                         <constraints>
-                            <constraint firstAttribute="width" constant="120" id="stm-ng-JoU"/>
+                            <constraint firstAttribute="width" constant="160" id="stm-ng-JoU"/>
                         </constraints>
                         <popUpButtonCell key="cell" type="push" title="5 seconds" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" tag="5" imageScaling="proportionallyDown" inset="2" selectedItem="rDR-nN-Rhf" id="zdN-iM-eB7">
                             <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
@@ -292,10 +307,47 @@
                             <binding destination="2iC-A2-4H1" name="value" keyPath="values.AlsoPreventDisplaySleep" id="ugB-BW-xpa"/>
                         </connections>
                     </button>
+                    <textField verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="lbl-lang-01">
+                        <rect key="frame" x="18" y="68" width="198" height="16"/>
+                        <textFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="right" title="Language:" id="cel-lang-01">
+                            <font key="font" metaFont="system"/>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
+                    <popUpButton verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="pop-lang-01">
+                        <rect key="frame" x="224" y="62" width="165" height="25"/>
+                        <popUpButtonCell key="cell" type="push" title="System Default" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="itm-lang-00" id="cel-lang-02">
+                            <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
+                            <font key="font" metaFont="system"/>
+                            <menu key="menu" id="mnu-lang-01">
+                                <items>
+                                    <menuItem title="System Default" state="on" id="itm-lang-00"/>
+                                    <menuItem title="English" tag="1" id="itm-lang-01"/>
+                                    <menuItem title="日本語" tag="2" id="itm-lang-02"/>
+                                </items>
+                            </menu>
+                        </popUpButtonCell>
+                        <connections>
+                            <action selector="changeLanguage:" target="-2" id="act-lang-01"/>
+                        </connections>
+                    </popUpButton>
+                    <box verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="sep-lang-01">
+                        <rect key="frame" x="20" y="50" width="400" height="5"/>
+                    </box>
                 </subviews>
                 <constraints>
-                    <constraint firstAttribute="bottom" secondItem="1zM-SG-VSQ" secondAttribute="bottom" constant="20" id="0Wx-Zp-Uc5"/>
-                    <constraint firstItem="1zM-SG-VSQ" firstAttribute="top" secondItem="y8F-rc-dLn" secondAttribute="bottom" constant="20" id="0cq-xY-yrq"/>
+                    <constraint firstAttribute="bottom" secondItem="1zM-SG-VSQ" secondAttribute="bottom" constant="18" id="0Wx-Zp-Uc5"/>
+                    <constraint firstItem="1zM-SG-VSQ" firstAttribute="top" secondItem="sep-lang-01" secondAttribute="bottom" constant="16" id="0cq-xY-yrq"/>
+                    <constraint firstItem="pop-lang-01" firstAttribute="top" secondItem="y8F-rc-dLn" secondAttribute="bottom" constant="12" id="cst-lng-001"/>
+                    <constraint firstItem="pop-lang-01" firstAttribute="leading" secondItem="CBj-a6-F0H" secondAttribute="leading" id="cst-lng-002"/>
+                    <constraint firstItem="pop-lang-01" firstAttribute="width" secondItem="CBj-a6-F0H" secondAttribute="width" id="cst-lng-003"/>
+                    <constraint firstItem="pop-lang-01" firstAttribute="firstBaseline" secondItem="lbl-lang-01" secondAttribute="firstBaseline" id="cst-lng-004"/>
+                    <constraint firstItem="lbl-lang-01" firstAttribute="leading" secondItem="k1b-Yi-WOy" secondAttribute="leading" id="cst-lng-005"/>
+                    <constraint firstItem="lbl-lang-01" firstAttribute="width" secondItem="2z1-iy-Vch" secondAttribute="width" id="cst-lng-006"/>
+                    <constraint firstItem="sep-lang-01" firstAttribute="top" secondItem="pop-lang-01" secondAttribute="bottom" constant="12" id="cst-lng-007"/>
+                    <constraint firstItem="sep-lang-01" firstAttribute="leading" secondItem="k1b-Yi-WOy" secondAttribute="leading" id="cst-lng-008"/>
+                    <constraint firstItem="sep-lang-01" firstAttribute="trailing" secondItem="Ueg-i7-wgh" secondAttribute="trailing" id="cst-lng-009"/>
                     <constraint firstItem="1zM-SG-VSQ" firstAttribute="centerX" secondItem="EiT-Mj-1SZ" secondAttribute="centerX" id="0u2-gh-oXV"/>
                     <constraint firstItem="cw6-8t-rLA" firstAttribute="leading" secondItem="k1b-Yi-WOy" secondAttribute="leading" id="2qG-wK-p3C"/>
                     <constraint firstItem="TvP-9y-NaV" firstAttribute="width" secondItem="k1b-Yi-WOy" secondAttribute="width" id="6gP-NV-1TN"/>
