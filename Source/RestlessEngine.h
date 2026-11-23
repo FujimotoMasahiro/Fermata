@@ -9,6 +9,10 @@
 
 - (NSArray<NSNumber *> *) pidsPreventingIdleSleep;
 
+// Maps bundleIdentifier -> array of human-readable active assertion descriptions
+// (e.g. "NoIdleSleepAssertion: Electron") for processes preventing idle/system sleep.
+- (NSDictionary<NSString *, NSArray<NSString *> *> *) idleSleepAssertionsByBundleIdentifier;
+
 - (void) checkHelper;
 
 - (void) preventLidCloseSleep;

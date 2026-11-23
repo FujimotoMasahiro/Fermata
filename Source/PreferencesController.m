@@ -5,6 +5,9 @@
 #import "PreferencesController.h"
 #import "Entry.h"
 #import "Localization.h"
+#import "RestlessEngine.h"
+
+static const NSInteger kRowStatusLabelTag = 9001;
 
 
 @import ServiceManagement;
@@ -135,6 +138,7 @@
     __weak FermataInfoButton *_activeInfoButton;
     BOOL _popoverPinnedByClick;
     NSUInteger _hoverSequence;
+    NSTimer *_statusRefreshTimer;
 }
 
 - (NSString *) windowNibName
@@ -145,6 +149,8 @@
 
 - (void) dealloc
 {
+    [_statusRefreshTimer invalidate];
+    _statusRefreshTimer = nil;
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 }
 
@@ -154,6 +160,7 @@
     [super windowDidLoad];
 
     self.window.allowsToolTipsWhenApplicationIsInactive = YES;
+    self.window.delegate = self;
     self.tableView.delegate = self;
 
     [self _installInfoButtons];
@@ -165,6 +172,73 @@
 
     [self _syncLanguageSelection];
     [self _applyLocalization];
+    [self refreshAssertionStatuses];
+    [self _startStatusRefreshTimer];
+}
+
+
+- (void) showWindow:(id)sender
+{
+    [super showWindow:sender];
+    [self refreshAssertionStatuses];
+    [self _startStatusRefreshTimer];
+}
+
+
+- (void) windowWillClose:(NSNotification *)notification
+{
+    [_statusRefreshTimer invalidate];
+    _statusRefreshTimer = nil;
+    if (_helpPopover.isShown) {
+        [_helpPopover performClose:nil];
+    }
+}
+
+
+- (void) _startStatusRefreshTimer
+{
+    if (_statusRefreshTimer) return;
+
+    __weak typeof(self) weakSelf = self;
+    _statusRefreshTimer = [NSTimer scheduledTimerWithTimeInterval:2.0 repeats:YES block:^(NSTimer *timer) {
+        [weakSelf refreshAssertionStatuses];
+    }];
+    _statusRefreshTimer.tolerance = 0.5;
+}
+
+
+- (void) refreshAssertionStatuses
+{
+    if (!self.isWindowLoaded) return;
+
+    NSDictionary<NSString *, NSArray<NSString *> *> *assertionsByBundleID =
+        self.engine ? [self.engine idleSleepAssertionsByBundleIdentifier] : @{};
+
+    for (Entry *entry in [self.entryArrayController arrangedObjects]) {
+        NSString *bundleID = entry.bundleIdentifier;
+        if (!bundleID) {
+            entry.runtimeStatus = EntryRuntimeStatusNotRunning;
+            entry.activeAssertionDescriptions = nil;
+            continue;
+        }
+
+        NSArray<NSString *> *assertions = assertionsByBundleID[bundleID];
+        if (assertions.count > 0) {
+            entry.runtimeStatus = EntryRuntimeStatusAsserting;
+            entry.activeAssertionDescriptions = assertions;
+        } else if ([[NSRunningApplication runningApplicationsWithBundleIdentifier:bundleID] count] > 0) {
+            entry.runtimeStatus = EntryRuntimeStatusRunningIdle;
+            entry.activeAssertionDescriptions = nil;
+        } else {
+            entry.runtimeStatus = EntryRuntimeStatusNotRunning;
+            entry.activeAssertionDescriptions = nil;
+        }
+    }
+
+    __weak typeof(self) weakSelf = self;
+    [self.tableView enumerateAvailableRowViewsUsingBlock:^(NSTableRowView *rowView, NSInteger row) {
+        [weakSelf _localizeRowView:rowView forRow:row];
+    }];
 }
 
 
@@ -385,12 +459,29 @@
 }
 
 
-- (void) _localizeRowView:(NSTableRowView *)rowView
+- (NSTextField *) _statusLabelInCellView:(NSTableCellView *)cellView
+{
+    NSTextField *label = [cellView viewWithTag:kRowStatusLabelTag];
+    if (!label) {
+        label = [NSTextField labelWithString:@""];
+        label.tag = kRowStatusLabelTag;
+        label.frame = NSMakeRect(30.0, 5.0, 184.0, 14.0);
+        label.autoresizingMask = NSViewWidthSizable | NSViewMaxYMargin;
+        label.font = [NSFont systemFontOfSize:10.5];
+        label.lineBreakMode = NSLineBreakByTruncatingTail;
+        label.allowsExpansionToolTips = YES;
+        [cellView addSubview:label];
+    }
+    return label;
+}
+
+
+- (void) _localizeRowView:(NSTableRowView *)rowView forRow:(NSInteger)row
 {
     if (!rowView) return;
 
     NSTableCellView *cellView = [rowView viewAtColumn:0];
-    if (![cellView isKindOfClass:[NSView class]]) return;
+    if (![cellView isKindOfClass:[NSTableCellView class]]) return;
 
     for (NSView *subview in cellView.subviews) {
         if ([subview isKindOfClass:[NSPopUpButton class]]) {
@@ -407,6 +498,51 @@
             [popUp synchronizeTitleAndSelectedItem];
         }
     }
+
+    NSArray *entries = [self.entryArrayController arrangedObjects];
+    if (row < 0 || (NSUInteger)row >= entries.count) return;
+    Entry *entry = entries[(NSUInteger)row];
+
+    NSTextField *statusLabel = [self _statusLabelInCellView:cellView];
+
+    NSString *dot = @"○";
+    NSColor *dotColor = [NSColor tertiaryLabelColor];
+    NSColor *textColor = [NSColor tertiaryLabelColor];
+    NSString *statusText = FermataLocalizedString(@"status.not_running");
+    NSString *tooltipText = FermataLocalizedString(@"status.tooltip.not_running");
+
+    if (entry.runtimeStatus == EntryRuntimeStatusAsserting) {
+        dot = @"●";
+        dotColor = [NSColor systemGreenColor];
+        textColor = [NSColor systemGreenColor];
+        statusText = FermataLocalizedString(@"status.asserting");
+        NSString *details = [entry.activeAssertionDescriptions componentsJoinedByString:@"\n• "] ?: @"";
+        if (details.length > 0) {
+            details = [@"• " stringByAppendingString:details];
+        }
+        tooltipText = [NSString stringWithFormat:FermataLocalizedString(@"status.tooltip.asserting"), details];
+    } else if (entry.runtimeStatus == EntryRuntimeStatusRunningIdle) {
+        dot = @"●";
+        dotColor = [NSColor secondaryLabelColor];
+        textColor = [NSColor secondaryLabelColor];
+        statusText = FermataLocalizedString(@"status.running_idle");
+        tooltipText = FermataLocalizedString(@"status.tooltip.idle");
+    }
+
+    NSMutableAttributedString *attr = [[NSMutableAttributedString alloc] init];
+    [attr appendAttributedString:[[NSAttributedString alloc] initWithString:[dot stringByAppendingString:@" "]
+                                                                 attributes:@{
+        NSFontAttributeName: [NSFont systemFontOfSize:10.0],
+        NSForegroundColorAttributeName: dotColor
+    }]];
+    [attr appendAttributedString:[[NSAttributedString alloc] initWithString:statusText
+                                                                 attributes:@{
+        NSFontAttributeName: [NSFont systemFontOfSize:10.5],
+        NSForegroundColorAttributeName: textColor
+    }]];
+
+    statusLabel.attributedStringValue = attr;
+    statusLabel.toolTip = tooltipText;
 }
 
 
@@ -485,7 +621,7 @@
 
     __weak typeof(self) weakSelf = self;
     [self.tableView enumerateAvailableRowViewsUsingBlock:^(NSTableRowView *rowView, NSInteger row) {
-        [weakSelf _localizeRowView:rowView];
+        [weakSelf _localizeRowView:rowView forRow:row];
     }];
 }
 
@@ -494,7 +630,7 @@
 
 - (void) tableView:(NSTableView *)tableView didAddRowView:(NSTableRowView *)rowView forRow:(NSInteger)row
 {
-    [self _localizeRowView:rowView];
+    [self _localizeRowView:rowView forRow:row];
 }
 
 
@@ -547,6 +683,7 @@
                 [entry setType:EntryTypePreventLidCloseSleepWhenIdleSleepPrevented];
 
                 [_entryArrayController addObject:entry];
+                [self refreshAssertionStatuses];
             }
         }
     }];

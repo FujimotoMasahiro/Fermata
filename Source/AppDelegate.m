@@ -24,7 +24,7 @@ static NSString * const kFermataUpdateNotificationName    = @"com.fujimotomasahi
 static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahiro.Fermata.Launcher";
 
 
-@interface AppDelegate ()
+@interface AppDelegate () <NSMenuDelegate>
 
 @property (weak) IBOutlet NSMenu *statusItemMenu;
 @property (weak) IBOutlet NSMenuItem *lidCloseMenuItem;
@@ -51,6 +51,8 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
     NSTimer *_manualPreventionTimer;
 
     NSArrayController *_entryArrayController;
+    NSMenuItem *_statusMenuItem;
+    NSString *_activeTriggerSummary;
 }
 
 
@@ -86,6 +88,11 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
     if (_statusItem.button) {
         _statusItem.button.image = _offImage;
     }
+    self.statusItemMenu.delegate = self;
+    _statusMenuItem = [[NSMenuItem alloc] initWithTitle:@"" action:nil keyEquivalent:@""];
+    _statusMenuItem.enabled = NO;
+    [self.statusItemMenu insertItem:_statusMenuItem atIndex:0];
+    [self.statusItemMenu insertItem:[NSMenuItem separatorItem] atIndex:1];
     [_statusItem setMenu:[self statusItemMenu]];
 
     [self _applyLocalization];
@@ -147,6 +154,50 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
 
     self.quitMenuItem.title       = FermataLocalizedString(@"menu.quit");
     self.quitMenuItem.toolTip     = FermataLocalizedString(@"tooltip.menu.quit");
+
+    [self _updateStatusMenuItem];
+}
+
+
+- (void) _updateStatusMenuItem
+{
+    if (!_statusMenuItem) return;
+
+    BOOL active = [_engine isPreventingLidCloseSleep];
+    NSString *dot = active ? @"● " : @"○ ";
+    NSColor *dotColor = active ? [NSColor systemGreenColor] : [NSColor tertiaryLabelColor];
+    NSString *text = nil;
+
+    if (active) {
+        if (_activeTriggerSummary.length > 0) {
+            text = [NSString stringWithFormat:FermataLocalizedString(@"menu.status.active_reason"), _activeTriggerSummary];
+        } else {
+            text = FermataLocalizedString(@"menu.status.active");
+        }
+    } else {
+        text = FermataLocalizedString(@"menu.status.inactive");
+    }
+
+    NSMutableAttributedString *attr = [[NSMutableAttributedString alloc] init];
+    [attr appendAttributedString:[[NSAttributedString alloc] initWithString:dot attributes:@{
+        NSFontAttributeName: [NSFont menuFontOfSize:11.0],
+        NSForegroundColorAttributeName: dotColor
+    }]];
+    [attr appendAttributedString:[[NSAttributedString alloc] initWithString:text attributes:@{
+        NSFontAttributeName: [NSFont menuFontOfSize:12.0],
+        NSForegroundColorAttributeName: [NSColor secondaryLabelColor]
+    }]];
+
+    _statusMenuItem.attributedTitle = attr;
+}
+
+
+- (void) menuWillOpen:(NSMenu *)menu
+{
+    if (menu == self.statusItemMenu) {
+        [self _updateEngineManually:NO];
+        [self _updateStatusMenuItem];
+    }
 }
 
 
@@ -389,7 +440,6 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
 - (void) _updateEngineManually:(BOOL)isManual
 {
     BOOL shouldPrevent = NO;
-    NSMutableDictionary *bundleIDToEntryMap = nil;
 
     if (_applicationIsTerminating) return;
 
@@ -400,6 +450,8 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
 
     // Step 1 - Check manual trigger
     //
+    NSMutableArray<NSString *> *triggerNames = [NSMutableArray array];
+
     if (_manualPreventionActive) {
         shouldPrevent = YES;
 
@@ -414,48 +466,50 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
                 reenableDelay = 0;
             }
         }
+
+        if (shouldPrevent) {
+            [triggerNames addObject:FermataLocalizedString(@"menu.status.manual")];
+        }
     }
 
-    // Step 2a - Check RestlessActionPreventLidCloseSleepWhenRunning
-    // Step 2b - Also build bundleIDToEntryMap
+    // Step 2 - Check watched applications & active idle-sleep assertions
     //
-    if (!shouldPrevent) {
-        bundleIDToEntryMap = [NSMutableDictionary dictionary];
+    NSDictionary<NSString *, NSArray<NSString *> *> *assertionsByBundleID = [_engine idleSleepAssertionsByBundleIdentifier];
 
-        for (Entry *entry in [_entryArrayController arrangedObjects]) {
-            NSString  *bundleIdentifier = [entry bundleIdentifier];
-            EntryType  type             = [entry type];
+    for (Entry *entry in [_entryArrayController arrangedObjects]) {
+        NSString  *bundleIdentifier = [entry bundleIdentifier];
+        EntryType  type             = [entry type];
 
-            if (!bundleIdentifier) continue;
+        if (!bundleIdentifier) continue;
 
-            [bundleIDToEntryMap setObject:entry forKey:bundleIdentifier];
+        NSArray<NSString *> *assertions = assertionsByBundleID[bundleIdentifier];
+        BOOL isRunning = ([[NSRunningApplication runningApplicationsWithBundleIdentifier:bundleIdentifier] count] > 0);
 
-            if (type == EntryTypePreventLidCloseSleepWhenRunning) {
-                if ([[NSRunningApplication runningApplicationsWithBundleIdentifier:bundleIdentifier] count]) {
-                    shouldPrevent = YES;
-                    break;
-                }
+        if (assertions.count > 0) {
+            entry.runtimeStatus = EntryRuntimeStatusAsserting;
+            entry.activeAssertionDescriptions = assertions;
+        } else if (isRunning) {
+            entry.runtimeStatus = EntryRuntimeStatusRunningIdle;
+            entry.activeAssertionDescriptions = nil;
+        } else {
+            entry.runtimeStatus = EntryRuntimeStatusNotRunning;
+            entry.activeAssertionDescriptions = nil;
+        }
+
+        if (type == EntryTypePreventLidCloseSleepWhenRunning && isRunning) {
+            shouldPrevent = YES;
+            if (entry.name.length > 0 && ![triggerNames containsObject:entry.name]) {
+                [triggerNames addObject:entry.name];
+            }
+        } else if (type == EntryTypePreventLidCloseSleepWhenIdleSleepPrevented && assertions.count > 0) {
+            shouldPrevent = YES;
+            if (entry.name.length > 0 && ![triggerNames containsObject:entry.name]) {
+                [triggerNames addObject:entry.name];
             }
         }
     }
 
-    // Step 3 - Check RestlessActionPreventLidCloseSleepWhenIdleSleepPrevented
-    //
-    if (!shouldPrevent) {
-        for (NSNumber *pidNumber in [_engine pidsPreventingIdleSleep]) {
-            pid_t pid = (pid_t)[pidNumber integerValue];
-
-            NSString *bundleIdentifier = [[NSRunningApplication runningApplicationWithProcessIdentifier:pid] bundleIdentifier];
-            if (!bundleIdentifier) continue;
-
-            Entry *entry = [bundleIDToEntryMap objectForKey:bundleIdentifier];
-
-            if ([entry type] == EntryTypePreventLidCloseSleepWhenIdleSleepPrevented) {
-                shouldPrevent = YES;
-                break;
-            }
-        }
-    }
+    _activeTriggerSummary = triggerNames.count > 0 ? [triggerNames componentsJoinedByString:@", "] : nil;
 
     [_engine setAlsoPreventDiskSleep:[defaults boolForKey:AlsoPreventDiskSleepKey]];
     [_engine setAlsoPreventDisplaySleep:[defaults boolForKey:AlsoPreventDisplaySleepKey]];
@@ -466,6 +520,11 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
     } else {
         [_engine allowLidCloseSleepAfter:reenableDelay];
     }
+
+    [self _updateStatusMenuItem];
+    if (_preferencesController.window.isVisible) {
+        [_preferencesController refreshAssertionStatuses];
+    }
 }
 
 
@@ -475,6 +534,7 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
 {
     if ([object isEqual:_engine]) {
         [self _updateStatusItem];
+        [self _updateStatusMenuItem];
 
     } else {
         [self _updateEngineManually:NO];
@@ -511,6 +571,7 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
     if (!_preferencesController) {
         _preferencesController = [[PreferencesController alloc] init];
         [_preferencesController setEntryArrayController:_entryArrayController];
+        [_preferencesController setEngine:_engine];
     }
 
     [_preferencesController showWindow:self];

@@ -29,13 +29,13 @@
         </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
-        <window title="Settings" allowsToolTipsWhenApplicationIsInactive="YES" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" frameAutosaveName="PreferencesV3" animationBehavior="default" id="QvC-M9-y7g">
+        <window title="Settings" allowsToolTipsWhenApplicationIsInactive="YES" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" frameAutosaveName="PreferencesV4" animationBehavior="default" id="QvC-M9-y7g">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
             <windowPositionMask key="initialPositionMask" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="196" y="796" width="440" height="490"/>
+            <rect key="contentRect" x="196" y="796" width="440" height="526"/>
             <rect key="screenRect" x="0.0" y="0.0" width="2560" height="1417"/>
             <view key="contentView" wantsLayer="YES" id="EiT-Mj-1SZ">
-                <rect key="frame" x="0.0" y="0.0" width="440" height="490"/>
+                <rect key="frame" x="0.0" y="0.0" width="440" height="526"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="gab-eF-yyZ">
@@ -54,14 +54,14 @@
                             <color key="backgroundColor" name="controlColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
-                    <scrollView autohidesScrollers="YES" horizontalLineScroll="34" horizontalPageScroll="10" verticalLineScroll="34" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ueg-i7-wgh">
-                        <rect key="frame" x="20" y="284" width="400" height="84"/>
+                    <scrollView autohidesScrollers="YES" horizontalLineScroll="46" horizontalPageScroll="10" verticalLineScroll="46" verticalPageScroll="10" usesPredominantAxisScrolling="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ueg-i7-wgh">
+                        <rect key="frame" x="20" y="284" width="400" height="142"/>
                         <clipView key="contentView" id="gyG-15-Uzu">
-                            <rect key="frame" x="1" y="1" width="398" height="82"/>
+                            <rect key="frame" x="1" y="1" width="398" height="140"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
-                                <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowHeight="32" rowSizeStyle="automatic" viewBased="YES" id="Nt2-aL-9ED">
-                                    <rect key="frame" x="0.0" y="0.0" width="398" height="82"/>
+                                <tableView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" columnSelection="YES" multipleSelection="NO" autosaveColumns="NO" rowHeight="44" rowSizeStyle="automatic" viewBased="YES" id="Nt2-aL-9ED">
+                                    <rect key="frame" x="0.0" y="0.0" width="398" height="140"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <size key="intercellSpacing" width="3" height="2"/>
                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -81,11 +81,11 @@
                                             <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                             <prototypeCellViews>
                                                 <tableCellView id="QRw-a0-1UW">
-                                                    <rect key="frame" x="1" y="1" width="395" height="32"/>
+                                                    <rect key="frame" x="1" y="1" width="395" height="44"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <imageView horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="s92-mD-mba">
-                                                            <rect key="frame" x="4" y="4" width="24" height="24"/>
+                                                            <rect key="frame" x="4" y="10" width="24" height="24"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                             <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyUpOrDown" image="NSActionTemplate" id="2W3-k1-eRd"/>
                                                             <connections>
@@ -93,7 +93,7 @@
                                                             </connections>
                                                         </imageView>
                                                         <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Cqx-hD-U5I">
-                                                            <rect key="frame" x="218" y="2" width="177" height="26"/>
+                                                            <rect key="frame" x="218" y="9" width="177" height="26"/>
                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                             <popUpButtonCell key="cell" type="push" title="is preventing Idle Sleep" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" tag="2" imageScaling="proportionallyDown" inset="2" selectedItem="jIP-55-U9U" id="2TZ-mJ-Pve">
                                                                 <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
@@ -110,7 +110,7 @@
                                                             </connections>
                                                         </popUpButton>
                                                         <textField verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" allowsExpansionToolTips="YES" translatesAutoresizingMaskIntoConstraints="NO" id="wLX-CU-WsM">
-                                                            <rect key="frame" x="30" y="8" width="180" height="17"/>
+                                                            <rect key="frame" x="30" y="22" width="180" height="17"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
                                                             <textFieldCell key="cell" lineBreakMode="truncatingTail" sendsActionOnEndEditing="YES" title="Table View Cell" id="cep-lM-coT">
                                                                 <font key="font" metaFont="system"/>
@@ -139,7 +139,7 @@
                         </clipView>
                         <constraints>
                             <constraint firstAttribute="width" constant="400" id="9Qk-Vo-QOQ"/>
-                            <constraint firstAttribute="height" constant="106" id="QgL-rD-rZt"/>
+                            <constraint firstAttribute="height" constant="142" id="QgL-rD-rZt"/>
                         </constraints>
                         <scroller key="horizontalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="YES" id="kXl-ox-WgH">
                             <rect key="frame" x="1" y="67" width="314" height="16"/>

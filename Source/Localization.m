@@ -49,6 +49,18 @@ NSString *FermataLocalizedString(NSString *key)
             @"menu.settings":             @"Settings…",
             @"menu.about":                @"About Fermata",
             @"menu.quit":                 @"Quit Fermata",
+            @"menu.status.active":        @"Status: Preventing Lid Close Sleep",
+            @"menu.status.active_reason": @"Status: Active (%@)",
+            @"menu.status.inactive":      @"Status: Normal Sleep",
+            @"menu.status.manual":        @"Manual",
+
+            // App runtime assertion status
+            @"status.asserting":          @"Asserting power (preventing sleep)",
+            @"status.running_idle":       @"Running (no power assertion)",
+            @"status.not_running":        @"Not running",
+            @"status.tooltip.asserting":  @"Active IOKit power assertions:\n%@",
+            @"status.tooltip.idle":       @"App is running, but currently holds no idle/system sleep power assertion.",
+            @"status.tooltip.not_running":@"App is not currently running.",
 
             // Menu tooltips
             @"tooltip.menu.lid_close":    @"Toggles macOS SleepDisabled via the privileged helper so your Mac stays awake even when the lid is closed. If a manual duration is set, it turns off automatically after that time.",
@@ -132,6 +144,18 @@ NSString *FermataLocalizedString(NSString *key)
             @"menu.settings":             @"設定…",
             @"menu.about":                @"Fermataについて",
             @"menu.quit":                 @"Fermataを終了",
+            @"menu.status.active":        @"状態: スリープ防止中",
+            @"menu.status.active_reason": @"状態: スリープ防止中（%@）",
+            @"menu.status.inactive":      @"状態: 通常スリープ",
+            @"menu.status.manual":        @"手動",
+
+            // App runtime assertion status
+            @"status.asserting":          @"電源アサーション中",
+            @"status.running_idle":       @"起動中（アサーションなし）",
+            @"status.not_running":        @"未起動",
+            @"status.tooltip.asserting":  @"発行中の電源アサーション:\n%@",
+            @"status.tooltip.idle":       @"アプリは起動中ですが、現在はスリープ防止の電源アサーションを出していません。",
+            @"status.tooltip.not_running":@"現在このアプリは起動していません。",
 
             // Menu tooltips
             @"tooltip.menu.lid_close":    @"オンにすると特権ヘルパー経由で macOS の SleepDisabled を有効にし、MacBook の画面を閉じてもスリープしないようにします。「手動オンの持続時間」を設定している場合は、時間が経つと自動でオフに戻ります。",

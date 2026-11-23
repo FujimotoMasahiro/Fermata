@@ -322,6 +322,53 @@ static const NSTimeInterval kTerminationTimeoutSeconds   = 2.5;
 }
 
 
+- (NSDictionary<NSString *, NSArray<NSString *> *> *) idleSleepAssertionsByBundleIdentifier
+{
+    NSMutableDictionary<NSString *, NSMutableArray<NSString *> *> *byBundleID = [NSMutableDictionary dictionary];
+
+    CFDictionaryRef cfAssertionsMap = NULL;
+    IOReturn err = IOPMCopyAssertionsByProcess(&cfAssertionsMap);
+
+    if (!err && cfAssertionsMap) {
+        NSDictionary *assertionsMap = (__bridge id)cfAssertionsMap;
+        for (NSNumber *pidNumber in assertionsMap) {
+            pid_t pid = (pid_t)[pidNumber integerValue];
+            NSRunningApplication *app = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
+            NSString *bundleID = app.bundleIdentifier;
+            if (!bundleID) continue;
+
+            NSArray *assertions = [assertionsMap objectForKey:pidNumber];
+            for (NSDictionary *dictionary in assertions) {
+                NSString *assertionType = [dictionary objectForKey:(__bridge id)kIOPMAssertionTypeKey];
+
+                if ([assertionType isEqualToString:(__bridge id)kIOPMAssertPreventUserIdleSystemSleep] ||
+                    [assertionType isEqualToString:(__bridge id)kIOPMAssertionTypeNoIdleSleep] ||
+                    [assertionType isEqualToString:(__bridge id)kIOPMAssertionTypePreventSystemSleep]
+                ) {
+                    NSString *assertionName = [dictionary objectForKey:(__bridge id)kIOPMAssertionNameKey];
+                    NSString *desc = assertionName.length > 0
+                        ? [NSString stringWithFormat:@"%@: %@", assertionType, assertionName]
+                        : assertionType;
+
+                    NSMutableArray<NSString *> *list = byBundleID[bundleID];
+                    if (!list) {
+                        list = [NSMutableArray array];
+                        byBundleID[bundleID] = list;
+                    }
+                    if (![list containsObject:desc]) {
+                        [list addObject:desc];
+                    }
+                }
+            }
+        }
+    }
+
+    if (cfAssertionsMap) CFRelease(cfAssertionsMap);
+
+    return byBundleID;
+}
+
+
 - (void) allowLidCloseSleepWithCallback:(void (^)(void))callback
 {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(_allowLidCloseSleep) object:nil];

@@ -4,8 +4,13 @@
 
 @import AppKit;
 
-@interface PreferencesController : NSWindowController <NSTableViewDelegate>
+@class RestlessEngine;
+
+@interface PreferencesController : NSWindowController <NSTableViewDelegate, NSWindowDelegate>
 
 @property (nonatomic) NSArrayController *entryArrayController;
+@property (nonatomic, weak) RestlessEngine *engine;
+
+- (void) refreshAssertionStatuses;
 
 @end
