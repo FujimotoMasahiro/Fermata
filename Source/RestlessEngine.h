@@ -1,4 +1,5 @@
 // (c) 2017-2024 Ricci Adams
+// Modified for Apple Silicon and reliability improvements by Masahiro Fujimoto
 // MIT License (or) 1-clause BSD License
 
 #import <Foundation/Foundation.h>
@@ -13,10 +14,11 @@
 - (void) preventLidCloseSleep;
 - (void) allowLidCloseSleepAfter:(NSTimeInterval)delay;
 
-// For application termination
+// For application termination (callback is guaranteed to be called once on the main thread)
 - (void) allowLidCloseSleepWithCallback:(void (^)(void))callback;
 
 @property (nonatomic, readonly, getter=isPreventingLidCloseSleep) BOOL preventingLidCloseSleep;
+@property (nonatomic, readonly, getter=isHelperAvailable) BOOL helperAvailable;
 
 @property (nonatomic) BOOL alsoPreventDiskSleep;
 @property (nonatomic) BOOL alsoPreventDisplaySleep;

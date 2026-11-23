@@ -17,7 +17,7 @@
 		550C63B21FDE94C7007841BC /* Fermata.icns in Resources */ = {isa = PBXBuildFile; fileRef = 550C63B11FDE94C6007841BC /* Fermata.icns */; };
 		550C63B41FDF83B1007841BC /* Launcher_main.m in Sources */ = {isa = PBXBuildFile; fileRef = 550C639C1FDE365D007841BC /* Launcher_main.m */; };
 		55406C6720B4E7C2001BA95B /* Helper_main.m in Sources */ = {isa = PBXBuildFile; fileRef = 55406C6620B4E7C2001BA95B /* Helper_main.m */; };
-		55406C6F20B4E926001BA95B /* com.iccir.Fermata.Helper in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55406C5E20B4E794001BA95B /* com.iccir.Fermata.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		55406C6F20B4E926001BA95B /* com.fujimotomasahiro.Fermata.Helper in CopyFiles */ = {isa = PBXBuildFile; fileRef = 55406C5E20B4E794001BA95B /* com.fujimotomasahiro.Fermata.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		55416FF41FDE0E9500D7529A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 55416FF31FDE0E9500D7529A /* Assets.xcassets */; };
 		55416FF71FDE0E9500D7529A /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 55416FF51FDE0E9500D7529A /* MainMenu.xib */; };
 		554170051FDE0EE000D7529A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 554170021FDE0EE000D7529A /* main.m */; };
@@ -68,7 +68,7 @@
 			dstPath = Contents/Library/LaunchServices;
 			dstSubfolderSpec = 1;
 			files = (
-				55406C6F20B4E926001BA95B /* com.iccir.Fermata.Helper in CopyFiles */,
+				55406C6F20B4E926001BA95B /* com.fujimotomasahiro.Fermata.Helper in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -89,7 +89,7 @@
 		550C63AA1FDE4D8A007841BC /* PreferencesController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = PreferencesController.m; path = Source/PreferencesController.m; sourceTree = "<group>"; };
 		550C63AC1FDE5B89007841BC /* TableCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = TableCell.xib; path = Resources/TableCell.xib; sourceTree = "<group>"; };
 		550C63B11FDE94C6007841BC /* Fermata.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; name = Fermata.icns; path = Resources/Fermata.icns; sourceTree = "<group>"; };
-		55406C5E20B4E794001BA95B /* com.iccir.Fermata.Helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = com.iccir.Fermata.Helper; sourceTree = BUILT_PRODUCTS_DIR; };
+		55406C5E20B4E794001BA95B /* com.fujimotomasahiro.Fermata.Helper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = com.fujimotomasahiro.Fermata.Helper; sourceTree = BUILT_PRODUCTS_DIR; };
 		55406C6620B4E7C2001BA95B /* Helper_main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Helper_main.m; path = Source/Helper_main.m; sourceTree = "<group>"; };
 		55406C6A20B4E82A001BA95B /* Helper-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Helper-Info.plist"; path = "Resources/Helper-Info.plist"; sourceTree = "<group>"; };
 		55406C6B20B4E82A001BA95B /* Helper-launchd.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Helper-launchd.plist"; path = "Resources/Helper-launchd.plist"; sourceTree = "<group>"; };
@@ -165,7 +165,7 @@
 			children = (
 				55416FED1FDE0E9500D7529A /* Fermata.app */,
 				550C63811FDE349D007841BC /* Launch Fermata.app */,
-				55406C5E20B4E794001BA95B /* com.iccir.Fermata.Helper */,
+				55406C5E20B4E794001BA95B /* com.fujimotomasahiro.Fermata.Helper */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -220,9 +220,9 @@
 			productReference = 550C63811FDE349D007841BC /* Launch Fermata.app */;
 			productType = "com.apple.product-type.application";
 		};
-		55406C5D20B4E794001BA95B /* com.iccir.Fermata.Helper */ = {
+		55406C5D20B4E794001BA95B /* com.fujimotomasahiro.Fermata.Helper */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 55406C6420B4E794001BA95B /* Build configuration list for PBXNativeTarget "com.iccir.Fermata.Helper" */;
+			buildConfigurationList = 55406C6420B4E794001BA95B /* Build configuration list for PBXNativeTarget "com.fujimotomasahiro.Fermata.Helper" */;
 			buildPhases = (
 				55406C5A20B4E794001BA95B /* Sources */,
 				55406C5B20B4E794001BA95B /* Frameworks */,
@@ -232,16 +232,15 @@
 			);
 			dependencies = (
 			);
-			name = com.iccir.Fermata.Helper;
+			name = com.fujimotomasahiro.Fermata.Helper;
 			productName = FermataHelper;
-			productReference = 55406C5E20B4E794001BA95B /* com.iccir.Fermata.Helper */;
+			productReference = 55406C5E20B4E794001BA95B /* com.fujimotomasahiro.Fermata.Helper */;
 			productType = "com.apple.product-type.tool";
 		};
 		55416FEC1FDE0E9500D7529A /* Fermata */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 55416FFE1FDE0E9500D7529A /* Build configuration list for PBXNativeTarget "Fermata" */;
 			buildPhases = (
-				550C63B31FDF82F7007841BC /* rcbump */,
 				55416FE91FDE0E9500D7529A /* Sources */,
 				55416FEA1FDE0E9500D7529A /* Frameworks */,
 				55416FEB1FDE0E9500D7529A /* Resources */,
@@ -297,7 +296,7 @@
 			targets = (
 				55416FEC1FDE0E9500D7529A /* Fermata */,
 				550C63801FDE349D007841BC /* Launch Fermata */,
-				55406C5D20B4E794001BA95B /* com.iccir.Fermata.Helper */,
+				55406C5D20B4E794001BA95B /* com.fujimotomasahiro.Fermata.Helper */,
 			);
 		};
 /* End PBXProject section */
@@ -324,23 +323,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		550C63B31FDF82F7007841BC /* rcbump */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = rcbump;
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "which rcbump\n\nif [ $? -eq 0 ]; then\n    rcbump build\n    exit $?\nfi\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		550C637D1FDE349D007841BC /* Sources */ = {
@@ -381,7 +363,7 @@
 		};
 		55406C6D20B4E8A5001BA95B /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 55406C5D20B4E794001BA95B /* com.iccir.Fermata.Helper */;
+			target = 55406C5D20B4E794001BA95B /* com.fujimotomasahiro.Fermata.Helper */;
 			targetProxy = 55406C6C20B4E8A5001BA95B /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -404,14 +386,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Resources/LaunchFermata.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 3DF63HD22U;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Resources/LaunchFermata_Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				PRODUCT_BUNDLE_IDENTIFIER = com.iccir.Fermata.Launcher;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fujimotomasahiro.Fermata.Launcher;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -423,14 +405,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Resources/LaunchFermata.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 3DF63HD22U;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Resources/LaunchFermata_Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				PRODUCT_BUNDLE_IDENTIFIER = com.iccir.Fermata.Launcher;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fujimotomasahiro.Fermata.Launcher;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -443,10 +425,10 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = 3DF63HD22U;
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				DEVELOPMENT_TEAM = "";
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				OTHER_LDFLAGS = (
 					"-sectcreate",
 					__TEXT,
@@ -456,6 +438,10 @@
 					__TEXT,
 					__launchd_plist,
 					"Resources/Helper-launchd.plist",
+					"-framework",
+					IOKit,
+					"-framework",
+					Foundation,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -469,10 +455,10 @@
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
-				DEVELOPMENT_TEAM = 3DF63HD22U;
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				DEVELOPMENT_TEAM = "";
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				OTHER_LDFLAGS = (
 					"-sectcreate",
 					__TEXT,
@@ -482,6 +468,10 @@
 					__TEXT,
 					__launchd_plist,
 					"Resources/Helper-launchd.plist",
+					"-framework",
+					IOKit,
+					"-framework",
+					Foundation,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -538,9 +528,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				ARCHS = "$(ARCHS_STANDARD)";
 				SDKROOT = macosx;
 			};
 			name = Debug;
@@ -588,8 +579,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				ARCHS = "$(ARCHS_STANDARD)";
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -597,14 +589,14 @@
 		55416FFF1FDE0E9500D7529A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 3DF63HD22U;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Resources/Fermata_Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				PRODUCT_BUNDLE_IDENTIFIER = com.iccir.Fermata;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fujimotomasahiro.Fermata;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -614,14 +606,14 @@
 		554170001FDE0E9500D7529A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 3DF63HD22U;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Resources/Fermata_Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
-				PRODUCT_BUNDLE_IDENTIFIER = com.iccir.Fermata;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.fujimotomasahiro.Fermata;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 			};
@@ -639,7 +631,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		55406C6420B4E794001BA95B /* Build configuration list for PBXNativeTarget "com.iccir.Fermata.Helper" */ = {
+		55406C6420B4E794001BA95B /* Build configuration list for PBXNativeTarget "com.fujimotomasahiro.Fermata.Helper" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				55406C6220B4E794001BA95B /* Debug */,

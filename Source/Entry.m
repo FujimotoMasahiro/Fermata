@@ -1,4 +1,5 @@
 // (c) 2017-2024 Ricci Adams
+// Modified for Apple Silicon and reliability improvements by Masahiro Fujimoto
 // MIT License (or) 1-clause BSD License
 
 #import "Entry.h"
@@ -6,6 +7,7 @@
 NSString * const EntryDidUpdateNotification = @"EntryDidUpdateNotification";
 
 @import AppKit;
+@import UniformTypeIdentifiers;
 
 static NSString *sNameKey             = @"name";
 static NSString *sBundleIdentifierKey = @"bundle-identifier";
@@ -21,7 +23,7 @@ static NSString *sTypeKey             = @"action";
         _bundleIdentifier =  [dictionary objectForKey:sBundleIdentifierKey];
         _type             = [[dictionary objectForKey:sTypeKey] integerValue];
     }
-    
+
     return self;
 }
 
@@ -29,7 +31,7 @@ static NSString *sTypeKey             = @"action";
 - (NSDictionary *) dictionaryRepresentation
 {
     NSMutableDictionary *result = [NSMutableDictionary dictionary];
-    
+
     if (_name)             [result setObject:_name             forKey:sNameKey];
     if (_bundleIdentifier) [result setObject:_bundleIdentifier forKey:sBundleIdentifierKey];
     if (_type)             [result setObject:@(_type)          forKey:sTypeKey];
@@ -41,12 +43,12 @@ static NSString *sTypeKey             = @"action";
 - (NSImage *) image
 {
     NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
-    NSString    *path      = [workspace absolutePathForAppBundleWithIdentifier:_bundleIdentifier];
-    
-    if (path) {
-        return [workspace iconForFile:path];
+    NSURL *appURL = _bundleIdentifier ? [workspace URLForApplicationWithBundleIdentifier:_bundleIdentifier] : nil;
+
+    if (appURL) {
+        return [workspace iconForFile:appURL.path];
     } else {
-        return [workspace iconForFileType: (__bridge id)kUTTypeApplicationBundle];
+        return [workspace iconForContentType:UTTypeApplicationBundle];
     }
 }
 

@@ -1,67 +1,75 @@
-# Fermata
+# Fermata (Apple Silicon / Universal Fork)
 
-Fermata is a small macOS utility which prevents Lid Close Sleep under certain conditions:
+[iccir/Fermata](https://github.com/iccir/Fermata) (by Ricci Adams) をフォークし、**Apple Silicon ネイティブ（Universal Binary: `arm64` + `x86_64`）対応** および **終了時フリーズ・スリープ未解除バグの修正** を行ったメンテナンス版です。
 
-1. The user manually checks the "Prevent Lid Close Sleep" menu item.
-2. A specified application is launched.
-3. A specified application prevents Idle Sleep (which is common for music-playing applications).
+Fermata is a small macOS utility that prevents Lid Close Sleep when specific applications are running or preventing idle sleep, or when manually toggled from the menu bar.
 
-## Why?
+---
 
-While DJing our weekly social dance, my laptop went to sleep and interrupted playback of the current song. Fortunately, the crowd was forgiving and the floor recovered.
+## このフォークでの主な変更点 / What's Changed
 
-After wading through logs, I discovered that the Lid Close sensor was activated. Originally, I thought that my laptop was failing; and then I realized: the sensor detects a magnetic field and **headphones are magnetic** (Apple's [support article](https://support.apple.com/en-us/HT203315) mentions speakers, but not headphones).
+- **Apple Silicon ネイティブ対応（Universal Binary）**: `arm64` + `x86_64` 両対応（macOS 12.0 以降）
+- **「Quit Fermata」で固まるバグを修正**:
+  - `allowLidCloseSleepWithCallback:` でヘルパー未応答・バージョン不一致時にコールバックが呼ばれず `NSTerminateLater` のまま永久にフリーズしていた問題を修正
+  - XPC 通信のエラーハンドリング・タイムアウト（最大 2.5〜3 秒）・メインスレッド保証・接続破棄を実装
+- **強制終了・クラッシュ時の自動スリープ復元（フェイルセーフ）**:
+  - 特権ヘルパー側でクライアント接続の切断を監視し、Fermata がクラッシュや強制終了されても自動で `SleepDisabled = 0` に戻す安全装置を追加
+- **macOS モダン API 対応**: `SMAppService`（macOS 13+ のログイン項目登録）、`UniformTypeIdentifiers`、`NSStatusItem.button` 等へ更新
+- **GitHub Actions 自動ビルド対応**:
+  - デフォルトは **無料（ad-hoc 署名）** で Universal Binary を自動ビルド
+  - 将来 Apple Developer ID 証明書を GitHub Secrets に追加すれば、そのまま **Developer ID 署名＋Apple 公証（Notarization）** ビルドに自動切替
 
-Many DJs and musicians use headphones during live performances. It's common to place those headphones near the laptop when not in use.
+---
 
-Unfortunately, macOS has no built-in option to disable the Lid Close sensor. Apps such as [InsomniaX](https://github.com/semaja2/InsomniaX) and [NoSleep](https://github.com/integralpro/nosleep) attempt to prevent it via a kernel extension. I had issues getting these apps to work due to Apple's [System Integrity Protection](https://en.wikipedia.org/wiki/System_Integrity_Protection) and [User-Approved Kernel Extension Loading](https://developer.apple.com/library/content/technotes/tn2459/_index.html). 
+## インストール方法（無料・ad-hoc 署名ビルド）
 
-## Installation and Usage
+1. [GitHub Releases](https://github.com/FujimotoMasahiro/Fermata/releases)（または Actions の Artifacts）から `Fermata-universal.zip` をダウンロードして解凍します。
+2. `Fermata.app` を `/Applications` へコピーします。
+3. 未署名（ad-hoc 署名）ビルドのため、初回のみターミナルで以下を実行して Gatekeeper 隔離属性を外し、特権ヘルパーを登録します。
 
-1. [Download the latest release](https://github.com/iccir/Fermata/releases) of Fermata.
-2. Copy the downloaded application to your `/Applications` folder and launch it.
-3. Click on the fermata icon in the top-right corner of your menu bar.
-4. Click "Preferences…".
-5. Add your favorite music app. By default, Fermata is configured to work with [Embrace](https://www.ricciadams.com/projects/embrace) (my DJ app).
+```bash
+xattr -cr /Applications/Fermata.app
+sudo ./Scripts/install-helper.sh /Applications/Fermata.app
+```
 
-When Embrace starts to play audio, it prevents Idle Sleep via a call to `-[NSProcessInfo beginActivityWithOptions:reason:]`. Fermata sees this prevention and "upgrades" it to also prevent Lid Close Sleep. When Embrace stops playing audio, it once again allows Idle Sleep. Fermata sees this and re-enables Lid Close Sleep.
+4. `/Applications/Fermata.app` を起動します。
 
-Some applications may not properly prevent Idle Sleep. For these apps, use the "is running" option rather than "is preventing Idle Sleep".
+### アンインストール（スリープ設定の復元込み）
 
-## How?
+```bash
+sudo ./Scripts/uninstall-helper.sh
+rm -rf /Applications/Fermata.app
+```
 
-Note: this is private SPI and is **unsupported by Apple**. It could break in the future; it could cause your computer to explode; it could cause the Apple Power Management Team to show up at my doorstep and angrily chastise me; etc.
+※ 万が一スリープできなくなった場合は、いつでも以下で元に戻せます：
+```bash
+sudo pmset -a disablesleep 0
+```
 
-#### Fermata 1.1
+---
 
-In a macOS 10.13 update, Apple protected the private `kIOPMAssertionAppliesOnLidClose` with the `com.apple.private.iokit.assertonlidclose` restricted entitlement. Fortunately, [lozzd](https://github.com/lozzd) suggested the `pmset -b disablesleep 1` command, which Fermata now uses.
+## 将来 Developer ID 署名・公証を有効にする場合（GitHub Secrets）
 
-#### Fermata 1.0
+リポジトリの **Settings → Secrets and variables → Actions** に以下を登録すると、`.github/workflows/build.yml` が自動で署名・公証ビルドに切り替わります。
 
-By examining Apple's [IOKitUser](https://opensource.apple.com/source/IOKitUser/) and [PowerManagement](https://opensource.apple.com/source/PowerManagement) projects, I learned of a private key (`kIOPMAssertionAppliesOnLidClose`) which can be used in conjunction with `IOPMAssertionDeclareUserActivity()` to prevent Lid Close sleep.
+| Secret 名 | 内容 |
+|---|---|
+| `MACOS_CERTIFICATE_P12_BASE64` | Developer ID Application 証明書（`.p12` を base64 化した文字列） |
+| `MACOS_CERTIFICATE_P12_PASSWORD` | `.p12` のパスワード |
+| `APPLE_TEAM_ID` | Apple Developer の Team ID（10文字） |
+| `APPLE_ID` *(任意・公証用)* | Apple ID メールアドレス |
+| `APPLE_APP_SPECIFIC_PASSWORD` *(任意・公証用)* | App 用パスワード |
 
-I've filed [rdar://35954315](http://openradar.appspot.com/radar?id=4931350570205184) for a public API solution to this problem.
+---
 
-## License
+## Credits & License
 
-I only care about proper attribution in source code. While
-attribution in binary form is welcomed, it is not necessary.
+This project is a fork of [iccir/Fermata](https://github.com/iccir/Fermata) originally created by **Ricci Adams**.
 
-Hence, unless otherwise noted, all files in this project are licensed under
-both the [MIT License](https://github.com/iccir/Fermata/blob/main/LICENSE)
-OR the [1-clause BSD License](https://opensource.org/license/bsd-1-clause).
-You may choose either license.
-
-`SPDX-License-Identifier: MIT OR BSD-1-Clause`
+Licensed under the same dual license as the original repository:
+- [MIT License](LICENSE) OR [1-clause BSD License](https://opensource.org/license/bsd-1-clause)
+- `SPDX-License-Identifier: MIT OR BSD-1-Clause`
 
 ## Disclaimer
 
-This software disables your Lid Close Sensor. While Apple laptops are designed to operate in ["closed-display mode"](https://support.apple.com/en-us/HT201834), Fermata makes it easier to accidentally toss a running laptop into your bag. This can result in overheating or damage to mechanical hard drives.
-
-Thus:
-
-    In no event shall the authors or copyright holders be
-    liable for any claim, damages or other liability, whether in an action
-    of contract, tort or otherwise, arising from, out of or in connection
-    with the software or the use or other dealings in the software.
-
+This software modifies macOS's `SleepDisabled` power setting (unsupported private SPI). While fail-safes are included, use at your own risk—do not place a running laptop inside a closed bag where it could overheat.
