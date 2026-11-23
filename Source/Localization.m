@@ -3,7 +3,7 @@
 
 #import "Localization.h"
 
-NSString * const FermataLanguagePreferenceKey        = @"AppLanguage";
+NSString * const FermataLanguagePreferenceKey         = @"AppLanguage";
 NSString * const FermataLanguageDidChangeNotification = @"FermataLanguageDidChangeNotification";
 
 NSString * const FermataLanguageValueSystem   = @"system";
@@ -22,7 +22,6 @@ NSString *FermataCurrentLanguageCode(void)
         return FermataLanguageValueEnglish;
     }
 
-    // System default: detect preferred language
     for (NSString *lang in [NSLocale preferredLanguages]) {
         if ([lang hasPrefix:@"ja"]) {
             return FermataLanguageValueJapanese;
@@ -44,22 +43,30 @@ NSString *FermataLocalizedString(NSString *key)
 
     dispatch_once(&onceToken, ^{
         enStrings = @{
+            // Menu items
             @"menu.prevent":              @"Prevent Lid Close Sleep",
             @"menu.postpone":             @"Postpone Lid Close Sleep",
             @"menu.settings":             @"Settings…",
             @"menu.about":                @"About Fermata",
             @"menu.quit":                 @"Quit Fermata",
 
+            // Menu tooltips
+            @"tooltip.menu.lid_close":    @"Toggles macOS SleepDisabled via the privileged helper so your Mac stays awake even when the lid is closed. If a manual duration is set, it turns off automatically after that time.",
+            @"tooltip.menu.settings":     @"Configure watched applications, polling intervals, additional sleep assertions, and display language.",
+            @"tooltip.menu.about":        @"Show version and license information for Fermata.",
+            @"tooltip.menu.quit":         @"Quit Fermata and immediately restore normal lid-close sleep (SleepDisabled = 0).",
+
+            // Preferences UI labels
             @"prefs.title":               @"Settings",
             @"prefs.auto_header":         @"Automatically prevent Lid Close Sleep when:",
             @"prefs.action.idle_sleep":   @"is preventing Idle Sleep",
             @"prefs.action.running":      @"is running",
             @"prefs.add_app":             @"Add Application…",
             @"prefs.remove_app":          @"Remove Application",
-            @"prefs.update_freq":         @"Update frequency:",
+            @"prefs.update_freq":         @"Check interval:",
             @"prefs.reenable_delay":      @"Delay before re-enabling:",
             @"prefs.manual_duration":     @"Manual activation duration:",
-            @"prefs.also_prevent":        @"When activated, also prevent:",
+            @"prefs.also_prevent":        @"Also prevent while active:",
             @"prefs.disk_sleep":          @"Disk Sleep",
             @"prefs.display_sleep":       @"Display Sleep",
             @"prefs.language":            @"Language:",
@@ -68,64 +75,116 @@ NSString *FermataLocalizedString(NSString *key)
             @"prefs.lang.ja":             @"日本語",
             @"prefs.launch_at_login":     @"Launch Fermata at login",
 
-            @"duration.none":             @"None",
-            @"duration.forever":          @"Forever",
+            // Durations
+            @"duration.none":             @"Immediately",
+            @"duration.forever":          @"Indefinitely",
             @"duration.1s":               @"1 second",
             @"duration.5s":               @"5 seconds",
             @"duration.10s":              @"10 seconds",
             @"duration.15s":              @"15 seconds",
             @"duration.30s":              @"30 seconds",
+            @"duration.5s_interval":      @"Every 5 seconds",
+            @"duration.10s_interval":     @"Every 10 seconds",
+            @"duration.15s_interval":     @"Every 15 seconds",
+            @"duration.30s_interval":     @"Every 30 seconds",
             @"duration.1m":               @"1 minute",
             @"duration.5m":               @"5 minutes",
             @"duration.10m":              @"10 minutes",
             @"duration.15m":              @"15 minutes",
             @"duration.30m":              @"30 minutes",
 
+            // Preferences tooltips (derived from source behavior)
+            @"tooltip.auto_list":         @"Watches the listed applications and asks the privileged helper to set macOS SleepDisabled = true whenever any matching condition is met.",
+            @"tooltip.action_popup":      @"Choose when this app prevents lid-close sleep:\n• \"is preventing Idle Sleep\": Active only while the app holds an IOKit idle-sleep assertion (e.g., playing audio or running a task).\n• \"is running\": Active whenever the app process is open.",
+            @"tooltip.action.idle_sleep": @"Reads active IOKit power assertions (IOPMCopyAssertionsByProcess) and prevents lid-close sleep only while this app is preventing idle sleep.",
+            @"tooltip.action.running":    @"Checks NSRunningApplication and prevents lid-close sleep for as long as this app is open.",
+            @"tooltip.add_app":           @"Select a macOS application (.app) to add to the automatic watch list.",
+            @"tooltip.remove_app":        @"Remove the currently selected application from the watch list.",
+            @"tooltip.update_freq":       @"Interval for the background NSTimer that polls IOKit power assertions and checks manual timer expiration. App launches and quits are detected immediately via NSWorkspace notifications.",
+            @"tooltip.reenable_delay":    @"Wait time before restoring normal lid-close sleep (SleepDisabled = false) after conditions are no longer met. Prevents sudden sleep during brief gaps such as track changes. Manual turn-off applies immediately.",
+            @"tooltip.manual_duration":   @"How long manual activation from the menu bar stays on before turning off automatically. When a duration is set, a progress bar appears under the menu bar icon. Choose \"Indefinitely\" to keep it on until turned off manually.",
+            @"tooltip.also_prevent":      @"Extra IOKit power assertions to hold while Fermata is preventing lid-close sleep. Idle system sleep (PreventUserIdleSystemSleep) is always prevented automatically while active.",
+            @"tooltip.disk_sleep":        @"Holds IOKit assertion kIOPMAssertPreventDiskIdle while Fermata is active to keep internal/external drives from spinning down.",
+            @"tooltip.display_sleep":     @"Holds IOKit assertion kIOPMAssertPreventUserIdleDisplaySleep while Fermata is active to keep the display from turning off while idle.",
+            @"tooltip.language":          @"Switches the display language of menus and settings immediately without restarting the app. \"System Default\" follows macOS preferred languages.",
+            @"tooltip.launch_at_login":   @"Registers Fermata in macOS Login Items (via SMAppService on macOS 13+) so it starts automatically when you log in.",
+
+            // Alerts
             @"alert.helper_missing.title": @"Privileged Helper Not Installed",
             @"alert.helper_missing.body":  @"Fermata needs its privileged helper to control lid-close sleep.\n\nIf you are using an ad-hoc / unsigned build, run Scripts/install-helper.sh in Terminal once, then try again.",
             @"alert.login_item.failed":    @"Couldn't add Fermata to Login Items list."
         };
 
         jaStrings = @{
-            @"menu.prevent":              @"蓋閉じスリープを無効にする",
-            @"menu.postpone":             @"蓋閉じスリープを一時的に無効にする",
+            // Menu items
+            @"menu.prevent":              @"画面を閉じてもスリープしない",
+            @"menu.postpone":             @"一時的にスリープを防ぐ",
             @"menu.settings":             @"設定…",
-            @"menu.about":                @"Fermata について",
-            @"menu.quit":                 @"Fermata を終了",
+            @"menu.about":                @"Fermataについて",
+            @"menu.quit":                 @"Fermataを終了",
 
+            // Menu tooltips
+            @"tooltip.menu.lid_close":    @"オンにすると特権ヘルパー経由で macOS の SleepDisabled を有効にし、MacBook の画面を閉じてもスリープしないようにします。「手動オンの持続時間」を設定している場合は、時間が経つと自動でオフに戻ります。",
+            @"tooltip.menu.settings":     @"自動スリープ防止の対象アプリや確認間隔、あわせて防ぐスリープ、表示言語を設定します。",
+            @"tooltip.menu.about":        @"Fermata のバージョンとライセンス情報を表示します。",
+            @"tooltip.menu.quit":         @"Fermata を終了し、macOS のスリープ設定（SleepDisabled）を通常状態に戻します。",
+
+            // Preferences UI labels
             @"prefs.title":               @"設定",
-            @"prefs.auto_header":         @"以下の条件で自動的に蓋閉じスリープを無効にする:",
-            @"prefs.action.idle_sleep":   @"アイドルスリープ阻害中",
-            @"prefs.action.running":      @"起動中",
+            @"prefs.auto_header":         @"次のアプリが動作中は画面を閉じてもスリープしない:",
+            @"prefs.action.idle_sleep":   @"スリープ防止中のみ",
+            @"prefs.action.running":      @"起動中は常に",
             @"prefs.add_app":             @"アプリを追加…",
             @"prefs.remove_app":          @"アプリを削除",
-            @"prefs.update_freq":         @"監視間隔:",
-            @"prefs.reenable_delay":      @"スリープ再開までの猶予:",
-            @"prefs.manual_duration":     @"手動有効化の持続時間:",
-            @"prefs.also_prevent":        @"有効時に併せて無効にする:",
+            @"prefs.update_freq":         @"状態の確認間隔:",
+            @"prefs.reenable_delay":      @"スリープ許可までの待ち時間:",
+            @"prefs.manual_duration":     @"手動オンの持続時間:",
+            @"prefs.also_prevent":        @"同時に防ぐスリープ:",
             @"prefs.disk_sleep":          @"ディスクのスリープ",
             @"prefs.display_sleep":       @"ディスプレイのスリープ",
-            @"prefs.language":            @"言語:",
-            @"prefs.lang.system":         @"システム設定に従う",
+            @"prefs.language":            @"表示言語:",
+            @"prefs.lang.system":         @"システムに合わせる",
             @"prefs.lang.en":             @"English",
             @"prefs.lang.ja":             @"日本語",
-            @"prefs.launch_at_login":     @"ログイン時に Fermata を起動",
+            @"prefs.launch_at_login":     @"ログイン時に自動で起動する",
 
-            @"duration.none":             @"なし",
-            @"duration.forever":          @"無制限",
+            // Durations
+            @"duration.none":             @"すぐ戻す",
+            @"duration.forever":          @"無期限",
             @"duration.1s":               @"1秒",
             @"duration.5s":               @"5秒",
             @"duration.10s":              @"10秒",
             @"duration.15s":              @"15秒",
             @"duration.30s":              @"30秒",
+            @"duration.5s_interval":      @"5秒ごと",
+            @"duration.10s_interval":     @"10秒ごと",
+            @"duration.15s_interval":     @"15秒ごと",
+            @"duration.30s_interval":     @"30秒ごと",
             @"duration.1m":               @"1分",
             @"duration.5m":               @"5分",
             @"duration.10m":              @"10分",
             @"duration.15m":              @"15分",
             @"duration.30m":              @"30分",
 
-            @"alert.helper_missing.title": @"特権ヘルパーが未登録です",
-            @"alert.helper_missing.body":  @"蓋閉じスリープを制御するには特権ヘルパーの登録が必要です。\n\n無料（未署名）ビルドをお使いの場合は、ターミナルで Scripts/install-helper.sh を 1 回実行してから再度お試しください。",
+            // Preferences tooltips (derived from source behavior)
+            @"tooltip.auto_list":         @"ここに登録したアプリを監視し、条件を満たしている間だけ特権ヘルパー経由で macOS の SleepDisabled を有効にして、画面を閉じてもスリープしないようにします。",
+            @"tooltip.action_popup":      @"このアプリでいつスリープを防ぐかを選びます。\n・「スリープ防止中のみ」: 再生や処理中など、アプリが macOS にスリープ防止要求（IOKit アサーション）を出している間だけ有効にします。\n・「起動中は常に」: アプリが開いている間はずっと有効にします。",
+            @"tooltip.action.idle_sleep": @"macOS の電源アサーション（IOPMCopyAssertionsByProcess）を監視し、このアプリがスリープを止めている処理中だけ画面閉じスリープを防ぎます。",
+            @"tooltip.action.running":    @"アプリの起動状態（NSRunningApplication）を監視し、アプリが開いている間は常に画面閉じスリープを防ぎます。",
+            @"tooltip.add_app":           @"自動スリープ防止の対象にするアプリ（.app）を選んでリストに追加します。",
+            @"tooltip.remove_app":        @"リストで選択中のアプリを監視対象から削除します。",
+            @"tooltip.update_freq":       @"対象アプリがスリープ防止要求を出しているかや、手動タイマーの終了時刻をバックグラウンドのタイマー（NSTimer）で確認する間隔です。短いほど反応が速くなります。なお、アプリの起動・終了自体は macOS の通知で即座に検知します。",
+            @"tooltip.reenable_delay":    @"条件が外れてから、通常の「画面を閉じたらスリープ」へ戻す（SleepDisabled を解除する）までの待ち時間です。曲の切り替わりや一瞬の停止でスリープしてしまうのを防ぎます。待機中に再び条件を満たすと解除は取り消されます（手動オフ時は待たずにすぐ解除します）。",
+            @"tooltip.manual_duration":   @"メニューバーから手動でオンにしたとき、自動でオフに戻るまでの時間です。時間を指定するとメニューバーアイコンの下に残り時間バーが表示され、経過後に通常スリープへ戻ります。「無期限」を選ぶと手動でオフにするまで継続します。",
+            @"tooltip.also_prevent":      @"Fermata が画面閉じスリープを防いでいる間、追加でどの省電力動作を止めるかを選びます（アイドルによるシステム本体のスリープ防止は自動で有効になります）。",
+            @"tooltip.disk_sleep":        @"Fermata 有効中に IOKit の kIOPMAssertPreventDiskIdle を発行し、内蔵・外付けドライブの省電力停止（スピンダウン）を防ぎます。",
+            @"tooltip.display_sleep":     @"Fermata 有効中に IOKit の kIOPMAssertPreventUserIdleDisplaySleep を発行し、操作していない間の画面消灯（ディスプレイスリープ）を防ぎます。",
+            @"tooltip.language":          @"メニューや設定画面の表示言語を切り替えます（アプリの再起動は不要です）。「システムに合わせる」を選ぶと macOS の優先言語に自動で従います。",
+            @"tooltip.launch_at_login":   @"オンにすると macOS のログイン項目（SMAppService）に登録され、Mac にログインしたとき自動で Fermata が起動します。",
+
+            // Alerts
+            @"alert.helper_missing.title": @"特権ヘルパーが登録されていません",
+            @"alert.helper_missing.body":  @"画面を閉じたときのスリープを制御するには、特権ヘルパーの登録が必要です。\n\n無料（未署名）ビルドをお使いの場合は、ターミナルで Scripts/install-helper.sh を 1 回実行してから再度お試しください。",
             @"alert.login_item.failed":    @"ログイン項目に Fermata を追加できませんでした。"
         };
     });

@@ -137,10 +137,16 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
     } else {
         self.lidCloseMenuItem.title = FermataLocalizedString(@"menu.prevent");
     }
+    self.lidCloseMenuItem.toolTip = FermataLocalizedString(@"tooltip.menu.lid_close");
 
-    self.settingsMenuItem.title = FermataLocalizedString(@"menu.settings");
-    self.aboutMenuItem.title    = FermataLocalizedString(@"menu.about");
-    self.quitMenuItem.title     = FermataLocalizedString(@"menu.quit");
+    self.settingsMenuItem.title   = FermataLocalizedString(@"menu.settings");
+    self.settingsMenuItem.toolTip = FermataLocalizedString(@"tooltip.menu.settings");
+
+    self.aboutMenuItem.title      = FermataLocalizedString(@"menu.about");
+    self.aboutMenuItem.toolTip    = FermataLocalizedString(@"tooltip.menu.about");
+
+    self.quitMenuItem.title       = FermataLocalizedString(@"menu.quit");
+    self.quitMenuItem.toolTip     = FermataLocalizedString(@"tooltip.menu.quit");
 }
 
 

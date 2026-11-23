@@ -100,6 +100,16 @@
 }
 
 
+- (void) _setTitle:(NSString *)title toolTip:(NSString *)toolTip forPopUp:(NSPopUpButton *)popUp itemWithTag:(NSInteger)tag
+{
+    NSMenuItem *item = [popUp.menu itemWithTag:tag];
+    if (item) {
+        item.title = title;
+        item.toolTip = toolTip;
+    }
+}
+
+
 - (void) _localizeRowView:(NSTableRowView *)rowView
 {
     if (!rowView) return;
@@ -110,8 +120,15 @@
     for (NSView *subview in cellView.subviews) {
         if ([subview isKindOfClass:[NSPopUpButton class]]) {
             NSPopUpButton *popUp = (NSPopUpButton *)subview;
-            [self _setTitle:FermataLocalizedString(@"prefs.action.idle_sleep") forPopUp:popUp itemWithTag:2];
-            [self _setTitle:FermataLocalizedString(@"prefs.action.running")    forPopUp:popUp itemWithTag:1];
+            [self _setTitle:FermataLocalizedString(@"prefs.action.idle_sleep")
+                    toolTip:FermataLocalizedString(@"tooltip.action.idle_sleep")
+                   forPopUp:popUp
+                itemWithTag:2];
+            [self _setTitle:FermataLocalizedString(@"prefs.action.running")
+                    toolTip:FermataLocalizedString(@"tooltip.action.running")
+                   forPopUp:popUp
+                itemWithTag:1];
+            popUp.toolTip = FermataLocalizedString(@"tooltip.action_popup");
             [popUp synchronizeTitleAndSelectedItem];
         }
     }
@@ -122,18 +139,32 @@
 {
     self.window.title = FermataLocalizedString(@"prefs.title");
 
-    self.autoHeaderLabel.stringValue      = FermataLocalizedString(@"prefs.auto_header");
-    self.addButton.title                  = FermataLocalizedString(@"prefs.add_app");
-    self.removeButton.title               = FermataLocalizedString(@"prefs.remove_app");
+    // Watched apps section
+    self.autoHeaderLabel.stringValue = FermataLocalizedString(@"prefs.auto_header");
+    self.autoHeaderLabel.toolTip     = FermataLocalizedString(@"tooltip.auto_list");
+    self.tableView.toolTip           = FermataLocalizedString(@"tooltip.auto_list");
 
+    self.addButton.title             = FermataLocalizedString(@"prefs.add_app");
+    self.addButton.toolTip           = FermataLocalizedString(@"tooltip.add_app");
+    self.removeButton.title          = FermataLocalizedString(@"prefs.remove_app");
+    self.removeButton.toolTip        = FermataLocalizedString(@"tooltip.remove_app");
+
+    // Update frequency
+    NSString *updateFreqTip = FermataLocalizedString(@"tooltip.update_freq");
     self.updateFrequencyLabel.stringValue = FermataLocalizedString(@"prefs.update_freq");
-    [self _setTitle:FermataLocalizedString(@"duration.5s")  forPopUp:self.updateFrequencyPopUp itemWithTag:5];
-    [self _setTitle:FermataLocalizedString(@"duration.10s") forPopUp:self.updateFrequencyPopUp itemWithTag:10];
-    [self _setTitle:FermataLocalizedString(@"duration.15s") forPopUp:self.updateFrequencyPopUp itemWithTag:15];
-    [self _setTitle:FermataLocalizedString(@"duration.30s") forPopUp:self.updateFrequencyPopUp itemWithTag:30];
+    self.updateFrequencyLabel.toolTip     = updateFreqTip;
+    self.updateFrequencyPopUp.toolTip     = updateFreqTip;
+    [self _setTitle:FermataLocalizedString(@"duration.5s_interval")  forPopUp:self.updateFrequencyPopUp itemWithTag:5];
+    [self _setTitle:FermataLocalizedString(@"duration.10s_interval") forPopUp:self.updateFrequencyPopUp itemWithTag:10];
+    [self _setTitle:FermataLocalizedString(@"duration.15s_interval") forPopUp:self.updateFrequencyPopUp itemWithTag:15];
+    [self _setTitle:FermataLocalizedString(@"duration.30s_interval") forPopUp:self.updateFrequencyPopUp itemWithTag:30];
     [self.updateFrequencyPopUp synchronizeTitleAndSelectedItem];
 
-    self.reenableDelayLabel.stringValue   = FermataLocalizedString(@"prefs.reenable_delay");
+    // Delay before re-enabling
+    NSString *delayTip = FermataLocalizedString(@"tooltip.reenable_delay");
+    self.reenableDelayLabel.stringValue = FermataLocalizedString(@"prefs.reenable_delay");
+    self.reenableDelayLabel.toolTip     = delayTip;
+    self.reenableDelayPopUp.toolTip     = delayTip;
     [self _setTitle:FermataLocalizedString(@"duration.none") forPopUp:self.reenableDelayPopUp itemWithTag:0];
     [self _setTitle:FermataLocalizedString(@"duration.1s")   forPopUp:self.reenableDelayPopUp itemWithTag:1];
     [self _setTitle:FermataLocalizedString(@"duration.5s")   forPopUp:self.reenableDelayPopUp itemWithTag:5];
@@ -142,7 +173,11 @@
     [self _setTitle:FermataLocalizedString(@"duration.30s")  forPopUp:self.reenableDelayPopUp itemWithTag:30];
     [self.reenableDelayPopUp synchronizeTitleAndSelectedItem];
 
-    self.manualDurationLabel.stringValue  = FermataLocalizedString(@"prefs.manual_duration");
+    // Manual activation duration
+    NSString *manualTip = FermataLocalizedString(@"tooltip.manual_duration");
+    self.manualDurationLabel.stringValue = FermataLocalizedString(@"prefs.manual_duration");
+    self.manualDurationLabel.toolTip     = manualTip;
+    self.manualDurationPopUp.toolTip     = manualTip;
     [self _setTitle:FermataLocalizedString(@"duration.forever") forPopUp:self.manualDurationPopUp itemWithTag:0];
     [self _setTitle:FermataLocalizedString(@"duration.1m")      forPopUp:self.manualDurationPopUp itemWithTag:1];
     [self _setTitle:FermataLocalizedString(@"duration.5m")      forPopUp:self.manualDurationPopUp itemWithTag:5];
@@ -151,17 +186,27 @@
     [self _setTitle:FermataLocalizedString(@"duration.30m")     forPopUp:self.manualDurationPopUp itemWithTag:30];
     [self.manualDurationPopUp synchronizeTitleAndSelectedItem];
 
-    self.alsoPreventLabel.stringValue     = FermataLocalizedString(@"prefs.also_prevent");
-    self.diskSleepCheckbox.title          = FermataLocalizedString(@"prefs.disk_sleep");
-    self.displaySleepCheckbox.title       = FermataLocalizedString(@"prefs.display_sleep");
+    // Additional sleep assertions
+    self.alsoPreventLabel.stringValue   = FermataLocalizedString(@"prefs.also_prevent");
+    self.alsoPreventLabel.toolTip       = FermataLocalizedString(@"tooltip.also_prevent");
+    self.diskSleepCheckbox.title        = FermataLocalizedString(@"prefs.disk_sleep");
+    self.diskSleepCheckbox.toolTip      = FermataLocalizedString(@"tooltip.disk_sleep");
+    self.displaySleepCheckbox.title     = FermataLocalizedString(@"prefs.display_sleep");
+    self.displaySleepCheckbox.toolTip   = FermataLocalizedString(@"tooltip.display_sleep");
 
-    self.languageLabel.stringValue        = FermataLocalizedString(@"prefs.language");
+    // Language
+    NSString *langTip = FermataLocalizedString(@"tooltip.language");
+    self.languageLabel.stringValue = FermataLocalizedString(@"prefs.language");
+    self.languageLabel.toolTip     = langTip;
+    self.languagePopUp.toolTip     = langTip;
     [self _setTitle:FermataLocalizedString(@"prefs.lang.system") forPopUp:self.languagePopUp itemWithTag:0];
     [self _setTitle:FermataLocalizedString(@"prefs.lang.en")     forPopUp:self.languagePopUp itemWithTag:1];
     [self _setTitle:FermataLocalizedString(@"prefs.lang.ja")     forPopUp:self.languagePopUp itemWithTag:2];
     [self.languagePopUp synchronizeTitleAndSelectedItem];
 
-    self.launchAtLoginCheckbox.title      = FermataLocalizedString(@"prefs.launch_at_login");
+    // Launch at login
+    self.launchAtLoginCheckbox.title   = FermataLocalizedString(@"prefs.launch_at_login");
+    self.launchAtLoginCheckbox.toolTip = FermataLocalizedString(@"tooltip.launch_at_login");
 
     __weak typeof(self) weakSelf = self;
     [self.tableView enumerateAvailableRowViewsUsingBlock:^(NSTableRowView *rowView, NSInteger row) {
