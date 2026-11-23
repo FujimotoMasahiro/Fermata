@@ -123,7 +123,6 @@ static const NSInteger kRowStatusLabelTag = 9001;
 @property (nonatomic, weak) IBOutlet NSPopUpButton *manualDurationPopUp;
 
 @property (nonatomic, weak) IBOutlet NSTextField *alsoPreventLabel;
-@property (nonatomic, weak) IBOutlet NSButton *diskSleepCheckbox;
 @property (nonatomic, weak) IBOutlet NSButton *displaySleepCheckbox;
 
 @property (nonatomic, weak) IBOutlet NSTextField *languageLabel;
@@ -273,7 +272,6 @@ static const NSInteger kRowStatusLabelTag = 9001;
     addAlignedToPopUpColumn(self.updateFrequencyPopUp, @"help.title.update_freq",     @"tooltip.update_freq");
     addAlignedToPopUpColumn(self.reenableDelayPopUp,   @"help.title.reenable_delay",  @"tooltip.reenable_delay");
     addAlignedToPopUpColumn(self.manualDurationPopUp,  @"help.title.manual_duration", @"tooltip.manual_duration");
-    addAlignedToPopUpColumn(self.diskSleepCheckbox,    @"help.title.disk_sleep",      @"tooltip.disk_sleep");
     addAlignedToPopUpColumn(self.displaySleepCheckbox, @"help.title.display_sleep",   @"tooltip.display_sleep");
     addAlignedToPopUpColumn(self.languagePopUp,        @"help.title.language",        @"tooltip.language");
 
@@ -600,8 +598,6 @@ static const NSInteger kRowStatusLabelTag = 9001;
     // Additional sleep assertions
     self.alsoPreventLabel.stringValue   = FermataLocalizedString(@"prefs.also_prevent");
     self.alsoPreventLabel.toolTip       = FermataLocalizedString(@"tooltip.also_prevent");
-    self.diskSleepCheckbox.title        = FermataLocalizedString(@"prefs.disk_sleep");
-    self.diskSleepCheckbox.toolTip      = FermataLocalizedString(@"tooltip.disk_sleep");
     self.displaySleepCheckbox.title     = FermataLocalizedString(@"prefs.display_sleep");
     self.displaySleepCheckbox.toolTip   = FermataLocalizedString(@"tooltip.display_sleep");
 

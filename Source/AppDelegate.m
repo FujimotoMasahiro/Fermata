@@ -17,7 +17,6 @@ static NSString * const ManualPreventionKey               = @"ManualPrevention";
 static NSString * const ManualDurationKey                 = @"ManualDuration";
 static NSString * const UpdateFrequencyKey                = @"UpdateFrequency";
 static NSString * const ReenableDelayKey                  = @"ReenableDelay";
-static NSString * const AlsoPreventDiskSleepKey           = @"AlsoPreventDiskSleep";
 static NSString * const AlsoPreventDisplaySleepKey        = @"AlsoPreventDisplaySleep";
 
 static NSString * const kFermataUpdateNotificationName    = @"com.fujimotomasahiro.Fermata.Update";
@@ -67,7 +66,6 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
         ReenableDelayKey:   @10,
         ManualDurationKey:  @10,
 
-        AlsoPreventDiskSleepKey:    @NO,
         AlsoPreventDisplaySleepKey: @NO,
 
         FermataLanguagePreferenceKey: FermataLanguageValueSystem
@@ -511,7 +509,6 @@ static NSString * const kFermataLauncherBundleID          = @"com.fujimotomasahi
 
     _activeTriggerSummary = triggerNames.count > 0 ? [triggerNames componentsJoinedByString:@", "] : nil;
 
-    [_engine setAlsoPreventDiskSleep:[defaults boolForKey:AlsoPreventDiskSleepKey]];
     [_engine setAlsoPreventDisplaySleep:[defaults boolForKey:AlsoPreventDisplaySleepKey]];
 
     if (shouldPrevent) {

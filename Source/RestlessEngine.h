@@ -24,7 +24,6 @@
 @property (nonatomic, readonly, getter=isPreventingLidCloseSleep) BOOL preventingLidCloseSleep;
 @property (nonatomic, readonly, getter=isHelperAvailable) BOOL helperAvailable;
 
-@property (nonatomic) BOOL alsoPreventDiskSleep;
 @property (nonatomic) BOOL alsoPreventDisplaySleep;
 
 @end

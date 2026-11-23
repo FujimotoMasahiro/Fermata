@@ -26,7 +26,6 @@ static const NSTimeInterval kTerminationTimeoutSeconds   = 2.5;
     NSInteger _helperVersion;
     NSXPCConnection *_connection;
 
-    IOPMAssertionID _diskSleepAssertion;
     IOPMAssertionID _displaySleepAssertion;
     IOPMAssertionID _idleSleepAssertion;
 }
@@ -44,11 +43,6 @@ static const NSTimeInterval kTerminationTimeoutSeconds   = 2.5;
 
 - (void) _releaseAllAssertions
 {
-    if (_diskSleepAssertion) {
-        IOPMAssertionRelease(_diskSleepAssertion);
-        _diskSleepAssertion = kIOPMNullAssertionID;
-    }
-
     if (_displaySleepAssertion) {
         IOPMAssertionRelease(_displaySleepAssertion);
         _displaySleepAssertion = kIOPMNullAssertionID;
@@ -261,10 +255,8 @@ static const NSTimeInterval kTerminationTimeoutSeconds   = 2.5;
 
 - (void) _updateAdditionalAssertions
 {
-    BOOL shouldPreventDiskSleep    = _preventingLidCloseSleep && _alsoPreventDiskSleep;
     BOOL shouldPreventDisplaySleep = _preventingLidCloseSleep && _alsoPreventDisplaySleep;
 
-    [self _updateAssertion:&_diskSleepAssertion    type:kIOPMAssertPreventDiskIdle             enabled:shouldPreventDiskSleep];
     [self _updateAssertion:&_displaySleepAssertion type:kIOPMAssertPreventUserIdleDisplaySleep enabled:shouldPreventDisplaySleep];
     [self _updateAssertion:&_idleSleepAssertion    type:kIOPMAssertPreventUserIdleSystemSleep  enabled:_preventingLidCloseSleep];
 }
@@ -405,15 +397,6 @@ static const NSTimeInterval kTerminationTimeoutSeconds   = 2.5;
 {
     if (_preventingLidCloseSleep != preventingLidCloseSleep) {
         _preventingLidCloseSleep = preventingLidCloseSleep;
-        [self _updateAdditionalAssertions];
-    }
-}
-
-
-- (void) setAlsoPreventDiskSleep:(BOOL)alsoPreventDiskSleep
-{
-    if (_alsoPreventDiskSleep != alsoPreventDiskSleep) {
-        _alsoPreventDiskSleep = alsoPreventDiskSleep;
         [self _updateAdditionalAssertions];
     }
 }
