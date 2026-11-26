@@ -26,4 +26,11 @@
 
 @property (nonatomic) BOOL alsoPreventDisplaySleep;
 
+// When YES (default), closing the lid while Fermata is preventing sleep turns the
+// built-in display off (system and apps keep running). Skipped when an external
+// display is in use (clamshell mode). The display wakes normally when the lid opens.
+@property (nonatomic) BOOL sleepDisplayOnLidClose;
+
+@property (nonatomic, readonly, getter=isLidClosed) BOOL lidClosed;
+
 @end
