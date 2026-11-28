@@ -11,14 +11,26 @@
 @import ServiceManagement;
 @import IOKit.pwr_mgt;
 @import AppKit;
+@import CoreGraphics;
+
+#import <IOKit/pwr_mgt/IOPM.h>
 
 static const NSTimeInterval kHelperCommandTimeoutSeconds = 3.0;
 static const NSTimeInterval kTerminationTimeoutSeconds   = 2.5;
+
+// Delay after the lid closes before turning the display off, so that macOS has
+// finished reconfiguring displays (needed to detect external-display clamshell mode).
+static const NSTimeInterval kLidCloseDisplaySleepDelay    = 1.5;
+
+// While the lid stays closed, re-check periodically in case something woke the display.
+static const NSTimeInterval kLidClosedWatchdogInterval    = 30.0;
 
 
 @interface RestlessEngine ()
 @property (nonatomic, getter=isPreventingLidCloseSleep) BOOL preventingLidCloseSleep;
 @property (nonatomic, getter=isHelperAvailable) BOOL helperAvailable;
+@property (nonatomic, getter=isLidClosed) BOOL lidClosed;
+- (void) _handleLidClosed:(BOOL)closed;
 @end
 
 
@@ -28,11 +40,27 @@ static const NSTimeInterval kTerminationTimeoutSeconds   = 2.5;
 
     IOPMAssertionID _displaySleepAssertion;
     IOPMAssertionID _idleSleepAssertion;
+
+    IONotificationPortRef _clamshellNotifyPort;
+    io_object_t _clamshellNotifier;
+    NSTimer *_lidClosedWatchdog;
+}
+
+
+- (instancetype) init
+{
+    if ((self = [super init])) {
+        _sleepDisplayOnLidClose = YES;
+        [self _startClamshellMonitoring];
+    }
+
+    return self;
 }
 
 
 - (void) dealloc
 {
+    [self _stopClamshellMonitoring];
     [self _releaseAllAssertions];
     [_connection invalidate];
     _connection = nil;
@@ -255,11 +283,193 @@ static const NSTimeInterval kTerminationTimeoutSeconds   = 2.5;
 
 - (void) _updateAdditionalAssertions
 {
-    BOOL shouldPreventDisplaySleep = _preventingLidCloseSleep && _alsoPreventDisplaySleep;
+    // Never hold the display awake behind a closed lid.
+    BOOL shouldPreventDisplaySleep = _preventingLidCloseSleep && _alsoPreventDisplaySleep && !_lidClosed;
 
     [self _updateAssertion:&_displaySleepAssertion type:kIOPMAssertPreventUserIdleDisplaySleep enabled:shouldPreventDisplaySleep];
     [self _updateAssertion:&_idleSleepAssertion    type:kIOPMAssertPreventUserIdleSystemSleep  enabled:_preventingLidCloseSleep];
 }
+
+
+#pragma mark - Lid (Clamshell) Handling
+
+static void sClamshellInterestCallback(void *refcon, io_service_t service, natural_t messageType, void *messageArgument)
+{
+    if (messageType != kIOPMMessageClamshellStateChange) return;
+
+    BOOL closed = (((uintptr_t)messageArgument) & kClamshellStateBit) != 0;
+    RestlessEngine *engine = (__bridge RestlessEngine *)refcon;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [engine _handleLidClosed:closed];
+    });
+}
+
+
+- (void) _startClamshellMonitoring
+{
+    io_service_t rootDomain = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOPMrootDomain"));
+    if (!rootDomain) {
+        NSLog(@"Fermata: IOPMrootDomain not found; lid-close display sleep disabled.");
+        return;
+    }
+
+    CFTypeRef state = IORegistryEntryCreateCFProperty(rootDomain, CFSTR(kAppleClamshellStateKey), kCFAllocatorDefault, 0);
+    if (state) {
+        _lidClosed = (CFGetTypeID(state) == CFBooleanGetTypeID()) && CFBooleanGetValue(state);
+        CFRelease(state);
+    }
+
+    _clamshellNotifyPort = IONotificationPortCreate(kIOMainPortDefault);
+    if (_clamshellNotifyPort) {
+        IONotificationPortSetDispatchQueue(_clamshellNotifyPort, dispatch_get_main_queue());
+
+        kern_return_t kr = IOServiceAddInterestNotification(_clamshellNotifyPort, rootDomain, kIOGeneralInterest,
+                                                            sClamshellInterestCallback, (__bridge void *)self,
+                                                            &_clamshellNotifier);
+        if (kr != KERN_SUCCESS) {
+            NSLog(@"Fermata: IOServiceAddInterestNotification failed: 0x%x", kr);
+            _clamshellNotifier = IO_OBJECT_NULL;
+        }
+    }
+
+    IOObjectRelease(rootDomain);
+}
+
+
+- (void) _stopClamshellMonitoring
+{
+    [_lidClosedWatchdog invalidate];
+    _lidClosedWatchdog = nil;
+
+    if (_clamshellNotifier) {
+        IOObjectRelease(_clamshellNotifier);
+        _clamshellNotifier = IO_OBJECT_NULL;
+    }
+
+    if (_clamshellNotifyPort) {
+        IONotificationPortDestroy(_clamshellNotifyPort);
+        _clamshellNotifyPort = NULL;
+    }
+}
+
+
+- (void) _handleLidClosed:(BOOL)closed
+{
+    if (_lidClosed == closed) return;
+    self.lidClosed = closed;
+
+    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(_sleepDisplayIfLidClosed) object:nil];
+    [self _updateAdditionalAssertions];
+
+    if (closed) {
+        [self performSelector:@selector(_sleepDisplayIfLidClosed) withObject:nil afterDelay:kLidCloseDisplaySleepDelay];
+        [self _updateLidClosedWatchdog];
+    } else {
+        [self _updateLidClosedWatchdog];
+
+        // Make sure the display comes back right away on lid open.
+        IOPMAssertionID activity = kIOPMNullAssertionID;
+        IOPMAssertionDeclareUserActivity(CFSTR("Fermata: lid opened"), kIOPMUserActiveLocal, &activity);
+        if (activity) IOPMAssertionRelease(activity);
+    }
+}
+
+
+- (BOOL) _shouldSleepDisplayForClosedLid
+{
+    return _lidClosed && _preventingLidCloseSleep && _sleepDisplayOnLidClose;
+}
+
+
+- (BOOL) _isExternalDisplayActive
+{
+    uint32_t count = 0;
+    CGDirectDisplayID displays[16];
+
+    if (CGGetActiveDisplayList(16, displays, &count) != kCGErrorSuccess) {
+        return YES; // Be conservative: never blank a screen we can't reason about.
+    }
+
+    for (uint32_t i = 0; i < count; i++) {
+        if (!CGDisplayIsBuiltin(displays[i]) && !CGDisplayIsAsleep(displays[i])) {
+            return YES;
+        }
+    }
+
+    return NO;
+}
+
+
+- (BOOL) _isAnyDisplayAwake
+{
+    uint32_t count = 0;
+    CGDirectDisplayID displays[16];
+
+    if (CGGetOnlineDisplayList(16, displays, &count) != kCGErrorSuccess) return YES;
+
+    for (uint32_t i = 0; i < count; i++) {
+        if (!CGDisplayIsAsleep(displays[i])) return YES;
+    }
+
+    return NO;
+}
+
+
+- (void) _sleepDisplayNow
+{
+    // `pmset displaysleepnow` is the supported way to turn displays off immediately.
+    // It needs no root privileges and does not put the system to sleep.
+    @try {
+        NSTask *task = [[NSTask alloc] init];
+        task.executableURL = [NSURL fileURLWithPath:@"/usr/bin/pmset"];
+        task.arguments = @[ @"displaysleepnow" ];
+        task.standardOutput = [NSFileHandle fileHandleWithNullDevice];
+        task.standardError  = [NSFileHandle fileHandleWithNullDevice];
+
+        NSError *error = nil;
+        if ([task launchAndReturnError:&error]) return;
+        NSLog(@"Fermata: pmset displaysleepnow failed: %@", error);
+    } @catch (NSException *exception) {
+        NSLog(@"Fermata: pmset displaysleepnow raised: %@", exception);
+    }
+
+    // Fallback: ask IODisplayWrangler to go idle.
+    io_service_t wrangler = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IODisplayWrangler"));
+    if (wrangler) {
+        IORegistryEntrySetCFProperty(wrangler, CFSTR("IORequestIdle"), kCFBooleanTrue);
+        IOObjectRelease(wrangler);
+    }
+}
+
+
+- (void) _sleepDisplayIfLidClosed
+{
+    if (![self _shouldSleepDisplayForClosedLid]) return;
+    if ([self _isExternalDisplayActive]) return;   // Clamshell mode with an external monitor: leave it alone.
+    if (![self _isAnyDisplayAwake]) return;
+
+    [self _sleepDisplayNow];
+}
+
+
+- (void) _updateLidClosedWatchdog
+{
+    BOOL shouldRun = [self _shouldSleepDisplayForClosedLid];
+
+    if (shouldRun && !_lidClosedWatchdog) {
+        __weak typeof(self) weakSelf = self;
+        _lidClosedWatchdog = [NSTimer scheduledTimerWithTimeInterval:kLidClosedWatchdogInterval repeats:YES block:^(NSTimer *timer) {
+            [weakSelf _sleepDisplayIfLidClosed];
+        }];
+        _lidClosedWatchdog.tolerance = 5.0;
+
+    } else if (!shouldRun && _lidClosedWatchdog) {
+        [_lidClosedWatchdog invalidate];
+        _lidClosedWatchdog = nil;
+    }
+}
+
 
 
 #pragma mark - Public Methods
@@ -398,6 +608,20 @@ static const NSTimeInterval kTerminationTimeoutSeconds   = 2.5;
     if (_preventingLidCloseSleep != preventingLidCloseSleep) {
         _preventingLidCloseSleep = preventingLidCloseSleep;
         [self _updateAdditionalAssertions];
+        [self _updateLidClosedWatchdog];
+
+        if (preventingLidCloseSleep && _lidClosed) {
+            [self performSelector:@selector(_sleepDisplayIfLidClosed) withObject:nil afterDelay:kLidCloseDisplaySleepDelay];
+        }
+    }
+}
+
+
+- (void) setSleepDisplayOnLidClose:(BOOL)sleepDisplayOnLidClose
+{
+    if (_sleepDisplayOnLidClose != sleepDisplayOnLidClose) {
+        _sleepDisplayOnLidClose = sleepDisplayOnLidClose;
+        [self _updateLidClosedWatchdog];
     }
 }
 
